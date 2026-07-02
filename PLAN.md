@@ -73,7 +73,7 @@ This project leverages gollama.cpp's pure Go bindings (no CGO), automatic librar
 - [x] Support legacy completion format (string prompt)
 - [x] Implement streaming for completions
 - [x] Support completion-specific parameters (`prompt`, `suffix`, `max_tokens`)
-- [x] Create compatibility tests with OpenAI SDK
+- [ ] Create compatibility tests with OpenAI SDK
 
 ### 2.3 Model Management Endpoints
 
