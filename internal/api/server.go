@@ -32,6 +32,9 @@ func NewServer(cfg Config) *Server {
 }
 
 func (s *Server) Start(ctx context.Context) error {
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
 	listener, err := net.Listen("tcp", s.cfg.addr())
 	if err != nil {
 		return fmt.Errorf("listen: %w", err)

@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -17,7 +18,14 @@ func chain(handler http.Handler, middlewares ...func(http.Handler) http.Handler)
 
 func withRequestID(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		ctx, requestID := withRequestIDContext(r.Context())
+		var ctx context.Context
+		var requestID string
+		if incoming := r.Header.Get("X-Request-ID"); incoming != "" {
+			requestID = incoming
+			ctx = context.WithValue(r.Context(), requestIDKey{}, requestID)
+		} else {
+			ctx, requestID = withRequestIDContext(r.Context())
+		}
 		w.Header().Set("X-Request-ID", requestID)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
