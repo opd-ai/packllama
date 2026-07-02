@@ -19,7 +19,7 @@ func main() {
 		Host:   "127.0.0.1",
 		Port:   8080,
 		Logger: logger,
-	})
+	}, nil)
 	if err := srv.Start(ctx); err != nil {
 		logger.Error("server stopped", "error", err)
 		os.Exit(1)

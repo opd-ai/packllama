@@ -58,27 +58,27 @@ This project leverages gollama.cpp's pure Go bindings (no CGO), automatic librar
 
 ### 2.1 Chat Completions Endpoint
 
-- [ ] Implement `/v1/chat/completions` POST endpoint
-- [ ] Support OpenAI request schema (messages array with roles)
-- [ ] Implement streaming responses with Server-Sent Events (SSE)
-- [ ] Support parameters: `model`, `temperature`, `top_p`, `max_tokens`, `stop`, `stream`
+- [x] Implement `/v1/chat/completions` POST endpoint
+- [x] Support OpenAI request schema (messages array with roles)
+- [x] Implement streaming responses with Server-Sent Events (SSE)
+- [x] Support parameters: `model`, `temperature`, `top_p`, `max_tokens`, `stop`, `stream`
 - [ ] Map OpenAI parameters to gollama.cpp inference settings
-- [ ] Implement response schema matching OpenAI format (including `finish_reason`)
-- [ ] Add request validation with helpful error messages
-- [ ] Write comprehensive endpoint tests
+- [x] Implement response schema matching OpenAI format (including `finish_reason`)
+- [x] Add request validation with helpful error messages
+- [x] Write comprehensive endpoint tests
 
 ### 2.2 Text Completions Endpoint
 
-- [ ] Implement `/v1/completions` POST endpoint
-- [ ] Support legacy completion format (string prompt)
-- [ ] Implement streaming for completions
-- [ ] Support completion-specific parameters (`prompt`, `suffix`, `max_tokens`)
+- [x] Implement `/v1/completions` POST endpoint
+- [x] Support legacy completion format (string prompt)
+- [x] Implement streaming for completions
+- [x] Support completion-specific parameters (`prompt`, `suffix`, `max_tokens`)
 - [ ] Create compatibility tests with OpenAI SDK
 
 ### 2.3 Model Management Endpoints
 
-- [ ] Implement `/v1/models` GET (list available models)
-- [ ] Implement `/v1/models/{model_id}` GET (model info)
+- [x] Implement `/v1/models` GET (list available models)
+- [x] Implement `/v1/models/{model_id}` GET (model info)
 - [ ] Add model metadata (context length, parameters, quantization)
 - [ ] Implement `POST /v1/models` to load new models
 - [ ] Implement `DELETE /v1/models/{model_id}` to unload models

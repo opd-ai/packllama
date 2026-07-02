@@ -8,8 +8,11 @@ import (
 	"net"
 	"net/http"
 	"sync"
+
+	"github.com/opd-ai/packllama/internal/service"
 )
 
+// Server is the packllama HTTP server.
 type Server struct {
 	cfg        Config
 	httpServer *http.Server
@@ -19,14 +22,15 @@ type Server struct {
 	listener net.Listener
 }
 
-func NewServer(cfg Config) *Server {
+// NewServer creates a new Server. Pass a non-nil svc to enable inference endpoints.
+func NewServer(cfg Config, svc service.InferenceService) *Server {
 	cfg = cfg.withDefaults()
 	return &Server{
 		cfg:    cfg,
 		logger: cfg.Logger,
 		httpServer: &http.Server{
 			Addr:    cfg.addr(),
-			Handler: NewHandler(cfg.Logger, cfg.AllowedOrigins),
+			Handler: NewHandler(cfg.Logger, cfg.AllowedOrigins, svc),
 		},
 	}
 }
