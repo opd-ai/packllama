@@ -43,6 +43,7 @@ func run() error {
 		Logger:          logger,
 		LogRequests:     cfg.LogRequests,
 		LogResponses:    cfg.LogResponses,
+		EnableMetrics:   cfg.EnableMetrics,
 	}, svc).Start(ctx)
 }
 

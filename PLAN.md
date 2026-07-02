@@ -128,7 +128,7 @@ This project leverages gollama.cpp's pure Go bindings (no CGO), automatic librar
 - [x] Request/response logging options (can be expensive)
 - [x] Performance metrics logging (tokens/sec, latency)
 - [x] Error and warning aggregation
-- [ ] Prometheus metrics export endpoint (optional Phase 3.5+)
+- [x] Prometheus metrics export endpoint (optional Phase 3.5+)
 
 ### 3.4 Deployment Artifacts
 

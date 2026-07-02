@@ -22,6 +22,9 @@ type Config struct {
 	// LogResponses enables debug-level logging of response bodies.
 	// This is expensive and should be used for troubleshooting only.
 	LogResponses bool
+
+	// EnableMetrics exposes a Prometheus /metrics endpoint when true.
+	EnableMetrics bool
 }
 
 func (c Config) withDefaults() Config {

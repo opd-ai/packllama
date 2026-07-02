@@ -53,7 +53,8 @@ type Config struct {
 	ModelOverrides map[string]ModelParams `json:"model_overrides,omitempty"`
 
 	// Behaviour.
-	DisableUI bool `json:"disable_ui"`
+	DisableUI     bool `json:"disable_ui"`
+	EnableMetrics bool `json:"enable_metrics"` // expose /metrics Prometheus endpoint
 }
 
 // Default returns a Config with sensible defaults applied.
@@ -148,6 +149,9 @@ func (c *Config) ApplyEnv() {
 	}
 	if v := os.Getenv("PACKLLAMA_DISABLE_UI"); v != "" {
 		c.DisableUI = isTruthy(v)
+	}
+	if v := os.Getenv("PACKLLAMA_ENABLE_METRICS"); v != "" {
+		c.EnableMetrics = isTruthy(v)
 	}
 }
 

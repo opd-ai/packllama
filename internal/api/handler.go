@@ -4,6 +4,8 @@ import (
 	"log/slog"
 	"net/http"
 
+	"github.com/prometheus/client_golang/prometheus"
+
 	"github.com/opd-ai/packllama/internal/service"
 )
 
@@ -24,11 +26,19 @@ func newHandlerWithConfig(cfg Config, svc service.InferenceService) http.Handler
 	})
 	registerInferenceRoutes(mux, svc)
 
+	var m *serverMetrics
+	if cfg.EnableMetrics {
+		reg := prometheus.NewRegistry()
+		m = newServerMetrics(reg)
+		mux.Handle("GET /metrics", metricsHandler(reg))
+	}
+
 	return chain(mux,
 		withCORS(cfg.AllowedOrigins),
 		withRequestID,
 		withLogging(cfg.Logger, cfg.LogRequests, cfg.LogResponses),
 		withRecovery(cfg.Logger),
+		withMetrics(m),
 	)
 }
 
