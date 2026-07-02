@@ -6,7 +6,9 @@ import (
 	"log/slog"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
+	"time"
 
 	"github.com/opd-ai/packllama/internal/api"
 	"github.com/opd-ai/packllama/internal/config"
@@ -39,32 +41,71 @@ func run() error {
 }
 
 // loadConfig builds a Config by merging defaults, optional file, env vars, and flags.
+// Precedence order (highest wins): flags > env > file > defaults.
 func loadConfig() (config.Config, error) {
 	cfg := config.Default()
 
-	configFile := flag.String("config", "", "path to JSON configuration file")
-	flag.StringVar(&cfg.Host, "host", cfg.Host, "bind address")
-	flag.IntVar(&cfg.Port, "port", cfg.Port, "listen port")
-	flag.StringVar(&cfg.LogLevel, "log-level", cfg.LogLevel, "log level: debug, info, warn, error")
-	flag.StringVar(&cfg.LogFormat, "log-format", cfg.LogFormat, "log format: text, json")
-	flag.StringVar(&cfg.ModelsDir, "models-dir", cfg.ModelsDir, "directory containing .gguf model files")
-	flag.StringVar(&cfg.DefaultModel, "default-model", cfg.DefaultModel, "default model to load on startup")
-	flag.BoolVar(&cfg.DisableUI, "no-ui", cfg.DisableUI, "run in API-only mode (no desktop UI)")
-	flag.DurationVar(&cfg.ShutdownTimeout, "shutdown-timeout", cfg.ShutdownTimeout, "graceful shutdown timeout")
+	// Declare flag destinations separately so flag.Visit can detect which flags
+	// were explicitly provided and apply them last, after file and env.
+	var (
+		configFile      string
+		host            string
+		port            int
+		logLevel        string
+		logFormat       string
+		modelsDir       string
+		defaultModel    string
+		disableUI       bool
+		shutdownTimeout time.Duration
+	)
+
+	flag.StringVar(&configFile, "config", "", "path to JSON configuration file")
+	flag.StringVar(&host, "host", cfg.Host, "bind address")
+	flag.IntVar(&port, "port", cfg.Port, "listen port")
+	flag.StringVar(&logLevel, "log-level", cfg.LogLevel, "log level: debug, info, warn, error")
+	flag.StringVar(&logFormat, "log-format", cfg.LogFormat, "log format: text, json")
+	flag.StringVar(&modelsDir, "models-dir", cfg.ModelsDir, "directory containing .gguf model files")
+	flag.StringVar(&defaultModel, "default-model", cfg.DefaultModel, "default model to load on startup")
+	flag.BoolVar(&disableUI, "no-ui", cfg.DisableUI, "run in API-only mode (no desktop UI)")
+	flag.DurationVar(&shutdownTimeout, "shutdown-timeout", cfg.ShutdownTimeout, "graceful shutdown timeout")
 	flag.Parse()
 
-	if *configFile != "" {
-		if err := cfg.LoadFile(*configFile); err != nil {
+	// Apply lower-precedence sources first: file, then env.
+	if configFile != "" {
+		if err := cfg.LoadFile(configFile); err != nil {
 			return config.Config{}, err
 		}
 	}
 	cfg.ApplyEnv()
+
+	// Apply only flags that were explicitly provided so they win over file and env.
+	flag.Visit(func(f *flag.Flag) {
+		switch f.Name {
+		case "host":
+			cfg.Host = host
+		case "port":
+			cfg.Port = port
+		case "log-level":
+			cfg.LogLevel = logLevel
+		case "log-format":
+			cfg.LogFormat = logFormat
+		case "models-dir":
+			cfg.ModelsDir = modelsDir
+		case "default-model":
+			cfg.DefaultModel = defaultModel
+		case "no-ui":
+			cfg.DisableUI = disableUI
+		case "shutdown-timeout":
+			cfg.ShutdownTimeout = shutdownTimeout
+		}
+	})
+
 	return cfg, cfg.Validate()
 }
 
 func newLogger(cfg config.Config) *slog.Logger {
 	var level slog.Level
-	switch cfg.LogLevel {
+	switch strings.ToLower(cfg.LogLevel) {
 	case "debug":
 		level = slog.LevelDebug
 	case "warn":
@@ -76,7 +117,7 @@ func newLogger(cfg config.Config) *slog.Logger {
 	}
 	opts := &slog.HandlerOptions{Level: level}
 	var handler slog.Handler
-	if cfg.LogFormat == "json" {
+	if strings.ToLower(cfg.LogFormat) == "json" {
 		handler = slog.NewJSONHandler(os.Stdout, opts)
 	} else {
 		handler = slog.NewTextHandler(os.Stdout, opts)

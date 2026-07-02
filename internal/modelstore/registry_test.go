@@ -123,7 +123,9 @@ func TestAlias(t *testing.T) {
 
 	r := New()
 	r.Scan(dir, false)
-	r.AddAlias("default", "llama-7b")
+	if ok := r.AddAlias("default", "llama-7b"); !ok {
+		t.Fatal("expected AddAlias to return true for existing model")
+	}
 
 	e, ok := r.Get("default")
 	if !ok {
@@ -131,6 +133,13 @@ func TestAlias(t *testing.T) {
 	}
 	if e.ID != "llama-7b" {
 		t.Errorf("alias resolved to %q, expected llama-7b", e.ID)
+	}
+}
+
+func TestAlias_UnknownModel(t *testing.T) {
+	r := New()
+	if ok := r.AddAlias("alias", "nonexistent"); ok {
+		t.Error("expected AddAlias to return false for nonexistent model")
 	}
 }
 

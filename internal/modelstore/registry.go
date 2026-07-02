@@ -93,10 +93,22 @@ func (r *Registry) Scan(dir string, recursive bool) error {
 }
 
 // AddAlias registers an alias that maps to an existing model ID.
-func (r *Registry) AddAlias(alias, modelID string) {
+// It returns false if modelID does not match any registered entry.
+func (r *Registry) AddAlias(alias, modelID string) bool {
 	r.mu.Lock()
 	defer r.mu.Unlock()
+	found := false
+	for _, e := range r.entries {
+		if e.ID == modelID {
+			found = true
+			break
+		}
+	}
+	if !found {
+		return false
+	}
 	r.aliases[alias] = modelID
+	return true
 }
 
 // List returns all registered model entries.
