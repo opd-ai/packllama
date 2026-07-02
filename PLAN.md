@@ -28,7 +28,7 @@ This project leverages gollama.cpp's pure Go bindings (no CGO), automatic librar
   - `./pkg/server` - Embeddable server library (public API)
   - `./examples` - Example applications
   - `./docs` - API documentation and guides
-- [ ] Set up Go module with gollama.cpp dependency
+- [x] Set up Go module with gollama.cpp dependency
 - [x] Create Makefile with build targets (build, test, run, release)
 - [x] Set up GitHub Actions CI/CD (test, cross-platform build)
 
