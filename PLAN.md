@@ -28,7 +28,7 @@ This project leverages gollama.cpp's pure Go bindings (no CGO), automatic librar
   - `./pkg/server` - Embeddable server library (public API)
   - `./examples` - Example applications
   - `./docs` - API documentation and guides
-- [ ] Set up Go module with gollama.cpp dependency
+- [x] Set up Go module with gollama.cpp dependency
 - [x] Create Makefile with build targets (build, test, run, release)
 - [x] Set up GitHub Actions CI/CD (test, cross-platform build)
 
@@ -44,13 +44,13 @@ This project leverages gollama.cpp's pure Go bindings (no CGO), automatic librar
 
 ### 1.3 gollama.cpp Integration Layer
 
-- [ ] Create wrapper package around gollama.cpp library functions
-- [ ] Implement model loading with error handling
-- [ ] Create inference pipeline abstraction
-- [ ] Implement token streaming callback mechanism
-- [ ] Add model state management (loaded/unloaded)
-- [ ] Create configuration for inference parameters
-- [ ] Handle GPU acceleration detection and fallback
+- [x] Create wrapper package around gollama.cpp library functions
+- [x] Implement model loading with error handling
+- [x] Create inference pipeline abstraction
+- [x] Implement token streaming callback mechanism
+- [x] Add model state management (loaded/unloaded)
+- [x] Create configuration for inference parameters
+- [x] Handle GPU acceleration detection and fallback
 
 ---
 
@@ -62,7 +62,7 @@ This project leverages gollama.cpp's pure Go bindings (no CGO), automatic librar
 - [x] Support OpenAI request schema (messages array with roles)
 - [x] Implement streaming responses with Server-Sent Events (SSE)
 - [x] Support parameters: `model`, `temperature`, `top_p`, `max_tokens`, `stop`, `stream`
-- [ ] Map OpenAI parameters to gollama.cpp inference settings
+- [x] Map OpenAI parameters to gollama.cpp inference settings
 - [x] Implement response schema matching OpenAI format (including `finish_reason`)
 - [x] Add request validation with helpful error messages
 - [x] Write comprehensive endpoint tests
