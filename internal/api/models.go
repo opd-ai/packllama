@@ -18,14 +18,10 @@ func handleListModels(svc service.InferenceService) http.HandlerFunc {
 
 		objects := make([]ModelObject, len(models))
 		for i, m := range models {
-			created := m.Created
-			if created == 0 {
-				created = time.Now().Unix()
-			}
 			objects[i] = ModelObject{
 				ID:      m.ID,
 				Object:  "model",
-				Created: created,
+				Created: modelCreatedAt(m.Created),
 				OwnedBy: m.OwnedBy,
 			}
 		}
@@ -53,14 +49,10 @@ func handleGetModel(svc service.InferenceService) http.HandlerFunc {
 
 		for _, m := range models {
 			if m.ID == id {
-				created := m.Created
-				if created == 0 {
-					created = time.Now().Unix()
-				}
 				writeJSON(w, http.StatusOK, ModelObject{
 					ID:      m.ID,
 					Object:  "model",
-					Created: created,
+					Created: modelCreatedAt(m.Created),
 					OwnedBy: m.OwnedBy,
 				})
 				return
@@ -68,4 +60,12 @@ func handleGetModel(svc service.InferenceService) http.HandlerFunc {
 		}
 		writeError(w, http.StatusNotFound, "model '"+id+"' not found")
 	}
+}
+
+// modelCreatedAt returns t when non-zero, otherwise the current Unix timestamp.
+func modelCreatedAt(t int64) int64 {
+	if t != 0 {
+		return t
+	}
+	return time.Now().Unix()
 }

@@ -75,7 +75,6 @@ func newLogger(cfg config.Config) *slog.Logger {
 		level = slog.LevelInfo
 	}
 	opts := &slog.HandlerOptions{Level: level}
-	_ = level // used below
 	var handler slog.Handler
 	if cfg.LogFormat == "json" {
 		handler = slog.NewJSONHandler(os.Stdout, opts)
