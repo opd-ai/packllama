@@ -17,7 +17,7 @@ services:
       # PACKLLAMA_ENABLE_METRICS: "true"
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "/app/packllama"]
+      test: ["CMD", "wget", "-qO-", "http://localhost:8080/health"]
       interval: 30s
       timeout: 5s
       retries: 3

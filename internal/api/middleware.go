@@ -53,6 +53,8 @@ func captureRequestBody(r *http.Request, enabled bool) []byte {
 	if !enabled || r.Body == nil {
 		return nil
 	}
+	// Errors are intentionally ignored: a partial read still restores a
+	// valid (possibly truncated) body for the downstream handler via NopCloser.
 	b, _ := io.ReadAll(r.Body)
 	r.Body = io.NopCloser(bytes.NewReader(b))
 	return b
