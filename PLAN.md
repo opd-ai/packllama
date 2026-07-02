@@ -209,7 +209,7 @@ This project leverages gollama.cpp's pure Go bindings (no CGO), automatic librar
 
 ### 5.1 Public `pkg/server` Package
 
-- [ ] Design clean public API for embedding gollama server
+- [ ] Design clean public API for embedding the packllama server
 - [ ] Create `Server` struct with exported constructor `New(opts ...Option)`
 - [ ] Implement functional options pattern for configuration
 - [ ] Public methods: `Start()`, `Stop()`, `ListenAddr()`, `LoadModel()`, `UnloadModel()`
@@ -339,7 +339,7 @@ This project leverages gollama.cpp's pure Go bindings (no CGO), automatic librar
 ### 8.2 Installation Methods
 
 - [ ] Direct binary downloads
-- [ ] Docker: `docker run packllama`
+- [ ] Docker: `docker run ghcr.io/opd-ai/packllama`
 - [ ] Systemd service for Linux
 - [ ] Windows installer/portable
 - [ ] macOS DMG or Homebrew
@@ -361,7 +361,7 @@ This project leverages gollama.cpp's pure Go bindings (no CGO), automatic librar
 - [ ] Contributing guidelines
 - [ ] Code of conduct
 - [ ] Community model collection/sharing
-- [ ] Showcase of applications using gollama server
+- [ ] Showcase of applications using packllama
 
 ---
 
