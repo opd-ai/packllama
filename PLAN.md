@@ -1,12 +1,13 @@
-# PLAN.md - gollama.cpp Server: OpenAI-Compatible LLM Service with Ebitengine UI
+# packllama Plan: OpenAI-Compatible LLM Service with Ebitengine UI
 
 ## Project Overview
 
-**gollama.cpp Server** is a local LLM inference service built on the gollama.cpp library that provides an **OpenAI-compatible REST API**, a **rich Ebitengine-powered web interface**, and an **embeddable server package** for integration into other Go applications. It is optimized for coding assistance while supporting all standard self-hosted LLM inference tasks.
+**packllama** is a local LLM inference service built on the gollama.cpp library that provides an **OpenAI-compatible REST API**, a **rich Ebitengine-powered desktop interface**, and an **embeddable server package** for integration into other Go applications. It is optimized for coding assistance while supporting standard self-hosted LLM inference tasks.
 
 This project leverages gollama.cpp's pure Go bindings (no CGO), automatic library management, and cross-platform GPU support to deliver a minimal, fast, and simple deployment experience.
 
 ### Key Objectives
+
 - Provide OpenAI API compatibility with feature parity to Ollama/llama.cpp server
 - Build an intuitive, responsive Ebitengine-based desktop UI
 - Enable embedding the server into any Go application
@@ -20,7 +21,7 @@ This project leverages gollama.cpp's pure Go bindings (no CGO), automatic librar
 ### 1.1 Project Structure
 
 - [ ] Create new repository with clear module organization
-  - `./cmd/gollama-server` - CLI application entry point
+  - `./cmd/packllama` - CLI application entry point
   - `./internal/api` - HTTP API handlers
   - `./internal/service` - Business logic layer
   - `./internal/ui` - Ebitengine UI components (package, not full service)
@@ -33,11 +34,11 @@ This project leverages gollama.cpp's pure Go bindings (no CGO), automatic librar
 
 ### 1.2 HTTP Server Foundation
 
-- [ ] Create HTTP server wrapper around net/http with middleware stack
+- [ ] Create HTTP server wrapper around `net/http` with middleware stack
 - [ ] Implement request logging and error handling middleware
 - [ ] Add request ID tracking for tracing
 - [ ] Implement graceful shutdown with context cancellation
-- [ ] Set up structured logging (slog) with appropriate levels
+- [ ] Set up structured logging (`slog`) with appropriate levels
 - [ ] Create health check endpoint (`/health`)
 - [ ] Implement CORS support (configurable)
 
@@ -114,9 +115,9 @@ This project leverages gollama.cpp's pure Go bindings (no CGO), automatic librar
 ### 3.2 Model Discovery & Management
 
 - [ ] Support loading from configurable model directories
-- [ ] Implement model file detection (*.gguf)
+- [ ] Implement model file detection (`*.gguf`)
 - [ ] Create model registry with metadata caching
-- [ ] Support model aliases (e.g., "default" → actual model path)
+- [ ] Support model aliases (for example, `"default"` → actual model path)
 - [ ] Auto-download models from Hugging Face (optional)
 - [ ] Model preload on startup option
 
@@ -134,12 +135,12 @@ This project leverages gollama.cpp's pure Go bindings (no CGO), automatic librar
 - [ ] Cross-platform binary builds (Windows, macOS, Linux)
 - [ ] Docker image with GPU support documentation
 - [ ] Systemd service file for Linux deployments
-- [ ] Example docker-compose.yml
+- [ ] Example `docker-compose.yml`
 - [ ] Installation documentation for each platform
 
 ---
 
-## Phase 4: Ebitengine-Based Web Interface
+## Phase 4: Ebitengine-Based Desktop Interface
 
 ### 4.1 UI Framework Setup
 
@@ -160,7 +161,7 @@ This project leverages gollama.cpp's pure Go bindings (no CGO), automatic librar
 - [ ] Build message display area with scrollable history
 - [ ] Implement syntax highlighting for code blocks (using existing library or custom)
 - [ ] Create message input field with multi-line support
-- [ ] Display streaming responses in real-time
+- [ ] Display streaming responses in real time
 - [ ] Show token count and generation speed
 - [ ] Implement message editing/deletion UI
 - [ ] Add conversation management (new/load/save/delete)
@@ -208,7 +209,7 @@ This project leverages gollama.cpp's pure Go bindings (no CGO), automatic librar
 
 ### 5.1 Public `pkg/server` Package
 
-- [ ] Design clean public API for embedding gollama server
+- [ ] Design clean public API for embedding the packllama server
 - [ ] Create `Server` struct with exported constructor `New(opts ...Option)`
 - [ ] Implement functional options pattern for configuration
 - [ ] Public methods: `Start()`, `Stop()`, `ListenAddr()`, `LoadModel()`, `UnloadModel()`
@@ -290,7 +291,7 @@ This project leverages gollama.cpp's pure Go bindings (no CGO), automatic librar
 
 - [ ] Unit tests for service layer (>80% coverage)
 - [ ] Integration tests for API endpoints
-- [ ] End-to-end tests using `openai` SDK
+- [ ] End-to-end tests using the `openai` SDK
 - [ ] Stress tests (many concurrent requests, long conversations)
 - [ ] GPU memory tests (no leaks after many inferences)
 - [ ] Cross-platform build verification
@@ -303,7 +304,7 @@ This project leverages gollama.cpp's pure Go bindings (no CGO), automatic librar
 - [ ] Installation guide for each platform
 - [ ] Configuration reference (all options)
 - [ ] Model selection and optimization guide
-- [ ] Web UI user guide with screenshots
+- [ ] UI user guide with screenshots
 - [ ] Code assistant feature guide
 - [ ] Embedding integration guide with code examples
 - [ ] API compatibility matrix (vs OpenAI spec)
@@ -329,7 +330,7 @@ This project leverages gollama.cpp's pure Go bindings (no CGO), automatic librar
   - Windows (amd64, arm64)
   - macOS (amd64, arm64)
   - Linux (amd64, arm64)
-  - Linux ARM (rpi compatibility)
+  - Linux ARM (Raspberry Pi compatibility)
 - [ ] Docker image with CUDA/ROCm variants
 - [ ] Homebrew formula for macOS
 - [ ] Portable ZIP archives
@@ -338,16 +339,16 @@ This project leverages gollama.cpp's pure Go bindings (no CGO), automatic librar
 ### 8.2 Installation Methods
 
 - [ ] Direct binary downloads
-- [ ] Docker: `docker run gollama-server`
+- [ ] Docker: `docker run ghcr.io/opd-ai/packllama`
 - [ ] Systemd service for Linux
 - [ ] Windows installer/portable
 - [ ] macOS DMG or Homebrew
-- [ ] Go library: `go get github.com/dianlight/gollama.cpp-server`
+- [ ] Go library: `go get github.com/opd-ai/packllama`
 
 ### 8.3 Release Management
 
 - [ ] Semantic versioning (MAJOR.MINOR.PATCH)
-- [ ] CHANGELOG.md maintenance
+- [ ] `CHANGELOG.md` maintenance
 - [ ] Release notes with highlighted features
 - [ ] Breaking change policy
 - [ ] Deprecation timeline
@@ -355,12 +356,12 @@ This project leverages gollama.cpp's pure Go bindings (no CGO), automatic librar
 
 ### 8.4 Community & Support
 
-- [ ] GitHub issues template (bug report, feature request)
+- [ ] GitHub issue templates (bug report, feature request)
 - [ ] Discussion forum or Discord channel
 - [ ] Contributing guidelines
 - [ ] Code of conduct
 - [ ] Community model collection/sharing
-- [ ] Showcase of applications using gollama-server
+- [ ] Showcase of applications using packllama
 
 ---
 
@@ -405,7 +406,7 @@ This project leverages gollama.cpp's pure Go bindings (no CGO), automatic librar
 
 ### 9.5 IDE Integration
 
-- [ ] VS Code extension for local gollama-server
+- [ ] VS Code extension for local packllama server
 - [ ] Extension marketplace listing
 - [ ] Language-specific IDE plugin templates
 - [ ] Editor context passing protocol
@@ -417,17 +418,28 @@ This project leverages gollama.cpp's pure Go bindings (no CGO), automatic librar
 
 ### Module Organization
 
-�LATEXPH0PH�
+```text
+.
+├── cmd/packllama
+├── docs
+├── examples
+├── internal
+│   ├── api
+│   ├── service
+│   └── ui
+└── pkg
+    └── server
+```
 
 ### Technology Stack
 
 | Component | Technology | Rationale |
-|-----------|-----------|-----------|
+| --- | --- | --- |
 | Core Library | gollama.cpp (pure Go) | No CGO, automatic library management, cross-platform |
-| HTTP Server | net/http | Standard library, lightweight |
+| HTTP Server | `net/http` | Standard library, lightweight |
 | Desktop UI | Ebitengine | Native performance, rich graphics, cross-platform |
-| Config | Go flag + YAML/TOML | Simple, standard approach |
-| Logging | slog | Go 1.21+ standard, structured logging |
+| Config | Go `flag` + YAML/TOML | Simple, standard approach |
+| Logging | `slog` | Go 1.21+ standard, structured logging |
 | Testing | Go testing + testify | Standard library + assertion helpers |
 | Build | Makefile | Portable, simple |
 
@@ -437,16 +449,17 @@ This project leverages gollama.cpp's pure Go bindings (no CGO), automatic librar
 - **Pure Go**: No CGO, no compilation required for users
 - **OpenAI Compatible**: Maximize ecosystem integration
 - **Streaming**: Server-Sent Events for real-time responses
-- **Embeddable**: pkg/server is production-ready for integration
-- **UI is Optional**: Can run as API-only or with Ebitengine UI
+- **Embeddable**: `pkg/server` is production-ready for integration
+- **UI is Optional**: Can run as API-only or with the Ebitengine UI
 - **Cross-Platform**: Single binary works everywhere
 
 ---
 
 ## Success Criteria
 
-- [ ] `/v1/chat/completions` endpoint fully compatible with OpenAI SDK
+- [ ] `/v1/chat/completions` endpoint fully compatible with the OpenAI SDK
 - [ ] `/v1/models` endpoint returns accurate model metadata
 - [ ] Streaming responses work with Server-Sent Events
 - [ ] Ebitengine UI renders smoothly at 60 FPS
-- [ ] Chat interface handles 100*
+- [ ] Chat interface handles 100+ messages in a single conversation without degraded usability
+- [ ] Embedded server API is stable enough for integration into external Go applications
