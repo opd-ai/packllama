@@ -132,11 +132,11 @@ This project leverages gollama.cpp's pure Go bindings (no CGO), automatic librar
 
 ### 3.4 Deployment Artifacts
 
-- [ ] Cross-platform binary builds (Windows, macOS, Linux)
-- [ ] Docker image with GPU support documentation
-- [ ] Systemd service file for Linux deployments
-- [ ] Example `docker-compose.yml`
-- [ ] Installation documentation for each platform
+- [x] Cross-platform binary builds (Windows, macOS, Linux)
+- [x] Docker image with GPU support documentation
+- [x] Systemd service file for Linux deployments
+- [x] Example `docker-compose.yml`
+- [x] Installation documentation for each platform
 
 ---
 
