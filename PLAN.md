@@ -218,7 +218,7 @@ This project leverages gollama.cpp's pure Go bindings (no CGO), automatic librar
 
 ### 5.2 Embeddable Web UI
 
-- [ ] Create minimal web UI (HTML/CSS/JS)
+- [ ] Build the embeddable web UI as a WASM interface using the same Ebitengine client as the Phase 4 desktop interface
 - [ ] Embed UI assets in binary using `//go:embed`
 - [ ] Serve embedded UI from configurable path (`/ui`, etc.)
 - [ ] WebSocket connection to server for real-time updates
