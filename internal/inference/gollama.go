@@ -37,10 +37,10 @@ func MapOpenAIRequest(req service.InferenceRequest) Parameters {
 		MaxTokens:   defaultMaxTokens,
 		Stop:        slices.Clone(req.Stop),
 	}
-	if req.Temperature != nil && *req.Temperature >= 0 {
+	if req.Temperature != nil && *req.Temperature >= 0 && *req.Temperature <= 2 {
 		params.Temperature = *req.Temperature
 	}
-	if req.TopP != nil && *req.TopP > 0 && *req.TopP <= 1 {
+	if req.TopP != nil && *req.TopP >= 0 && *req.TopP <= 1 {
 		params.TopP = *req.TopP
 	}
 	if req.MaxTokens != nil && *req.MaxTokens > 0 {
@@ -127,6 +127,8 @@ func (e *Engine) DetectGPUAcceleration() bool {
 }
 
 // LoadModel loads a model file and updates state.
+// The entire load-and-swap sequence is serialized under the write mutex so that
+// two concurrent callers cannot free each other's models.
 func (e *Engine) LoadModel(path string) error {
 	if path == "" {
 		return errors.New("model path is required")
@@ -135,13 +137,14 @@ func (e *Engine) LoadModel(path string) error {
 		return errors.New("backend is nil")
 	}
 
+	e.mu.Lock()
+	defer e.mu.Unlock()
+
 	model, err := e.backend.LoadModel(path)
 	if err != nil {
 		return fmt.Errorf("load model %q: %w", path, err)
 	}
 
-	e.mu.Lock()
-	defer e.mu.Unlock()
 	if e.model != nil {
 		e.backend.FreeModel(e.model)
 	}
@@ -174,22 +177,29 @@ func (e *Engine) NewPipeline(params Parameters, callback TokenCallback) *Pipelin
 }
 
 // Run executes one inference request and streams token callbacks.
+// The read lock is held for the duration of Generate to prevent UnloadModel
+// from freeing the model while generation is in-flight.  A nil callback is
+// normalized to a no-op to avoid panics in the backend.
 func (p *Pipeline) Run(ctx context.Context, prompt string) error {
 	if p == nil || p.engine == nil {
 		return errors.New("pipeline is nil")
-	}
-
-	p.engine.mu.RLock()
-	model := p.engine.model
-	p.engine.mu.RUnlock()
-	if model == nil {
-		return ErrModelNotLoaded
 	}
 	if p.engine.backend == nil {
 		return errors.New("backend is nil")
 	}
 
-	return p.engine.backend.Generate(ctx, model, prompt, p.params, p.callback)
+	cb := p.callback
+	if cb == nil {
+		cb = func(TokenEvent) error { return nil }
+	}
+
+	p.engine.mu.RLock()
+	defer p.engine.mu.RUnlock()
+	if p.engine.model == nil {
+		return ErrModelNotLoaded
+	}
+
+	return p.engine.backend.Generate(ctx, p.engine.model, prompt, p.params, cb)
 }
 
 type gollamaBackend struct{}
