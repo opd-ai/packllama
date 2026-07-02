@@ -36,42 +36,69 @@ func withRequestID(next http.Handler) http.Handler {
 func withLogging(logger *slog.Logger, logRequests, logResponses bool) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			var bodyBytes []byte
-			if logRequests && r.Body != nil {
-				bodyBytes, _ = io.ReadAll(r.Body)
-				r.Body = io.NopCloser(bytes.NewReader(bodyBytes))
-			}
-
-			recorder := &statusRecorder{ResponseWriter: w, statusCode: http.StatusOK}
-			if logResponses {
-				recorder.buf = &bytes.Buffer{}
-			}
+			bodyBytes := captureRequestBody(r, logRequests)
+			recorder := newStatusRecorder(w, logResponses)
 			start := time.Now()
 			next.ServeHTTP(recorder, r)
 
-			args := []any{
-				"method", r.Method,
-				"path", r.URL.Path,
-				"status", recorder.statusCode,
-				"duration", time.Since(start),
-				"bytes", recorder.bytesWritten,
-				"request_id", RequestIDFromContext(r.Context()),
-			}
-			if logRequests && len(bodyBytes) > 0 {
-				args = append(args, "request_body", string(bodyBytes))
-			}
-			if logResponses && recorder.buf != nil && recorder.buf.Len() > 0 {
-				args = append(args, "response_body", recorder.buf.String())
-			}
-
-			level := slog.LevelInfo
-			if recorder.statusCode >= 500 {
-				level = slog.LevelError
-			} else if recorder.statusCode >= 400 {
-				level = slog.LevelWarn
-			}
-			logger.Log(r.Context(), level, "request completed", args...)
+			args := baseLogArgs(r, recorder, time.Since(start))
+			args = appendVerboseLogs(args, bodyBytes, recorder, logRequests, logResponses)
+			logger.Log(r.Context(), httpLogLevel(recorder.statusCode), "request completed", args...)
 		})
+	}
+}
+
+// captureRequestBody reads and restores the request body when logRequests is true.
+func captureRequestBody(r *http.Request, enabled bool) []byte {
+	if !enabled || r.Body == nil {
+		return nil
+	}
+	b, _ := io.ReadAll(r.Body)
+	r.Body = io.NopCloser(bytes.NewReader(b))
+	return b
+}
+
+// newStatusRecorder wraps w and optionally enables response body capture.
+func newStatusRecorder(w http.ResponseWriter, captureBody bool) *statusRecorder {
+	rec := &statusRecorder{ResponseWriter: w, statusCode: http.StatusOK}
+	if captureBody {
+		rec.buf = &bytes.Buffer{}
+	}
+	return rec
+}
+
+// baseLogArgs returns the fixed set of log fields present on every request.
+func baseLogArgs(r *http.Request, rec *statusRecorder, dur time.Duration) []any {
+	return []any{
+		"method", r.Method,
+		"path", r.URL.Path,
+		"status", rec.statusCode,
+		"duration", dur,
+		"bytes", rec.bytesWritten,
+		"request_id", RequestIDFromContext(r.Context()),
+	}
+}
+
+// appendVerboseLogs optionally appends request/response body fields.
+func appendVerboseLogs(args []any, reqBody []byte, rec *statusRecorder, logReq, logResp bool) []any {
+	if logReq && len(reqBody) > 0 {
+		args = append(args, "request_body", string(reqBody))
+	}
+	if logResp && rec.buf != nil && rec.buf.Len() > 0 {
+		args = append(args, "response_body", rec.buf.String())
+	}
+	return args
+}
+
+// httpLogLevel maps HTTP status codes to slog levels.
+func httpLogLevel(statusCode int) slog.Level {
+	switch {
+	case statusCode >= 500:
+		return slog.LevelError
+	case statusCode >= 400:
+		return slog.LevelWarn
+	default:
+		return slog.LevelInfo
 	}
 }
 

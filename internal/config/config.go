@@ -110,48 +110,43 @@ func (c *Config) LoadFile(path string) error {
 // ApplyEnv overwrites fields in c with values found in the environment.
 // All environment variables are prefixed with PACKLLAMA_.
 func (c *Config) ApplyEnv() {
-	if v := os.Getenv("PACKLLAMA_HOST"); v != "" {
-		c.Host = v
-	}
-	if v := os.Getenv("PACKLLAMA_PORT"); v != "" {
-		if n, err := strconv.Atoi(v); err == nil {
-			c.Port = n
+	for _, entry := range c.envBindings() {
+		if v := os.Getenv(entry.key); v != "" {
+			entry.apply(c, v)
 		}
 	}
-	if v := os.Getenv("PACKLLAMA_SHUTDOWN_TIMEOUT"); v != "" {
-		if d, err := time.ParseDuration(v); err == nil {
-			c.ShutdownTimeout = d
-		}
-	}
-	if v := os.Getenv("PACKLLAMA_ALLOWED_ORIGINS"); v != "" {
-		c.AllowedOrigins = splitComma(v)
-	}
-	if v := os.Getenv("PACKLLAMA_LOG_LEVEL"); v != "" {
-		c.LogLevel = v
-	}
-	if v := os.Getenv("PACKLLAMA_LOG_FORMAT"); v != "" {
-		c.LogFormat = v
-	}
-	if v := os.Getenv("PACKLLAMA_LOG_REQUESTS"); v != "" {
-		c.LogRequests = isTruthy(v)
-	}
-	if v := os.Getenv("PACKLLAMA_LOG_RESPONSES"); v != "" {
-		c.LogResponses = isTruthy(v)
-	}
-	if v := os.Getenv("PACKLLAMA_MODELS_DIR"); v != "" {
-		c.ModelsDir = v
-	}
-	if v := os.Getenv("PACKLLAMA_DEFAULT_MODEL"); v != "" {
-		c.DefaultModel = v
-	}
-	if v := os.Getenv("PACKLLAMA_PRELOAD_MODELS"); v != "" {
-		c.PreloadModels = splitComma(v)
-	}
-	if v := os.Getenv("PACKLLAMA_DISABLE_UI"); v != "" {
-		c.DisableUI = isTruthy(v)
-	}
-	if v := os.Getenv("PACKLLAMA_ENABLE_METRICS"); v != "" {
-		c.EnableMetrics = isTruthy(v)
+}
+
+// envBinding associates an environment variable key with its setter function.
+type envBinding struct {
+	key   string
+	apply func(*Config, string)
+}
+
+// envBindings returns the full list of environment variable → field bindings.
+func (c *Config) envBindings() []envBinding {
+	return []envBinding{
+		{"PACKLLAMA_HOST", func(c *Config, v string) { c.Host = v }},
+		{"PACKLLAMA_PORT", func(c *Config, v string) {
+			if n, err := strconv.Atoi(v); err == nil {
+				c.Port = n
+			}
+		}},
+		{"PACKLLAMA_SHUTDOWN_TIMEOUT", func(c *Config, v string) {
+			if d, err := time.ParseDuration(v); err == nil {
+				c.ShutdownTimeout = d
+			}
+		}},
+		{"PACKLLAMA_ALLOWED_ORIGINS", func(c *Config, v string) { c.AllowedOrigins = splitComma(v) }},
+		{"PACKLLAMA_LOG_LEVEL", func(c *Config, v string) { c.LogLevel = v }},
+		{"PACKLLAMA_LOG_FORMAT", func(c *Config, v string) { c.LogFormat = v }},
+		{"PACKLLAMA_LOG_REQUESTS", func(c *Config, v string) { c.LogRequests = isTruthy(v) }},
+		{"PACKLLAMA_LOG_RESPONSES", func(c *Config, v string) { c.LogResponses = isTruthy(v) }},
+		{"PACKLLAMA_MODELS_DIR", func(c *Config, v string) { c.ModelsDir = v }},
+		{"PACKLLAMA_DEFAULT_MODEL", func(c *Config, v string) { c.DefaultModel = v }},
+		{"PACKLLAMA_PRELOAD_MODELS", func(c *Config, v string) { c.PreloadModels = splitComma(v) }},
+		{"PACKLLAMA_DISABLE_UI", func(c *Config, v string) { c.DisableUI = isTruthy(v) }},
+		{"PACKLLAMA_ENABLE_METRICS", func(c *Config, v string) { c.EnableMetrics = isTruthy(v) }},
 	}
 }
 
