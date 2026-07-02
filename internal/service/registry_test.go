@@ -57,7 +57,7 @@ func TestRegistryService_ListModels_WithEntries(t *testing.T) {
 	}
 }
 
-func TestRegistryService_ListModels_MetadataPreserved(t *testing.T) {
+func TestRegistryService_ListModels_DerivesIDFromFilename(t *testing.T) {
 	dir := t.TempDir()
 	f, err := os.Create(filepath.Join(dir, "llama-7b-q4.gguf"))
 	if err != nil {
@@ -70,13 +70,6 @@ func TestRegistryService_ListModels_MetadataPreserved(t *testing.T) {
 		t.Fatalf("scan: %v", err)
 	}
 
-	// Simulate metadata set on the entry after scanning (e.g. by inference backend).
-	entries := reg.List()
-	if len(entries) != 1 {
-		t.Fatalf("expected 1 entry, got %d", len(entries))
-	}
-	// Directly mutate a copy and add back — registry doesn't expose a set API yet;
-	// use ModelInfo fields comparison after RegistryService reads the raw entry.
 	svc := service.NewRegistryService(reg)
 	models, err := svc.ListModels(context.Background())
 	if err != nil {

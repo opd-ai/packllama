@@ -3,6 +3,8 @@ package api
 import (
 	"net/http"
 	"strconv"
+	"strings"
+	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
@@ -55,14 +57,26 @@ func withMetrics(m *serverMetrics) func(http.Handler) http.Handler {
 		}
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			rec := &statusRecorder{ResponseWriter: w, statusCode: http.StatusOK}
-			timer := prometheus.NewTimer(m.requestDuration.WithLabelValues(r.Method, r.URL.Path))
+			start := time.Now()
 			next.ServeHTTP(rec, r)
-			timer.ObserveDuration()
+			path := metricsPathLabel(r)
+			m.requestDuration.WithLabelValues(r.Method, path).Observe(time.Since(start).Seconds())
 			m.requestsTotal.WithLabelValues(
 				r.Method,
-				r.URL.Path,
+				path,
 				strconv.Itoa(rec.statusCode),
 			).Inc()
 		})
 	}
+}
+
+func metricsPathLabel(r *http.Request) string {
+	if r.Pattern == "" {
+		return r.URL.Path
+	}
+	_, path, ok := strings.Cut(r.Pattern, " ")
+	if !ok || path == "" {
+		return r.Pattern
+	}
+	return path
 }

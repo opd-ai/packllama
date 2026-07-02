@@ -16,10 +16,10 @@ type Config struct {
 	ShutdownTimeout time.Duration
 	Logger          *slog.Logger
 
-	// LogRequests enables debug-level logging of request bodies.
+	// LogRequests enables request-body logging on the request completion entry.
 	// This is expensive and should be used for troubleshooting only.
 	LogRequests bool
-	// LogResponses enables debug-level logging of response bodies.
+	// LogResponses enables response-body logging on the request completion entry.
 	// This is expensive and should be used for troubleshooting only.
 	LogResponses bool
 

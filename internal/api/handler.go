@@ -37,8 +37,8 @@ func newHandlerWithConfig(cfg Config, svc service.InferenceService) http.Handler
 		withCORS(cfg.AllowedOrigins),
 		withRequestID,
 		withLogging(cfg.Logger, cfg.LogRequests, cfg.LogResponses),
-		withRecovery(cfg.Logger),
 		withMetrics(m),
+		withRecovery(cfg.Logger),
 	)
 }
 

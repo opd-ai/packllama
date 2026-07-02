@@ -58,8 +58,8 @@ func buildService(cfg config.Config, logger *slog.Logger) service.InferenceServi
 	if err := registry.Scan(cfg.ModelsDir, false); err != nil {
 		logger.Warn("model discovery failed", "dir", cfg.ModelsDir, "error", err)
 	}
-	if cfg.DefaultModel != "" {
-		_ = registry.AddAlias("default", cfg.DefaultModel)
+	if cfg.DefaultModel != "" && !registry.AddAlias("default", cfg.DefaultModel) {
+		logger.Warn("default model not found during discovery", "model", cfg.DefaultModel, "dir", cfg.ModelsDir)
 	}
 	return service.NewRegistryService(registry)
 }

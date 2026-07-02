@@ -179,52 +179,52 @@ func writeJSON(t *testing.T, v any) string {
 }
 
 func TestApplyEnv_NewFields(t *testing.T) {
-t.Setenv("PACKLLAMA_LOG_REQUESTS", "true")
-t.Setenv("PACKLLAMA_LOG_RESPONSES", "1")
-t.Setenv("PACKLLAMA_PRELOAD_MODELS", "llama-7b, codellama-13b")
+	t.Setenv("PACKLLAMA_LOG_REQUESTS", "true")
+	t.Setenv("PACKLLAMA_LOG_RESPONSES", "1")
+	t.Setenv("PACKLLAMA_PRELOAD_MODELS", "llama-7b, codellama-13b")
 
-c := Default()
-c.ApplyEnv()
+	c := Default()
+	c.ApplyEnv()
 
-if !c.LogRequests {
-t.Error("expected LogRequests=true")
-}
-if !c.LogResponses {
-t.Error("expected LogResponses=true")
-}
-if len(c.PreloadModels) != 2 {
-t.Errorf("expected 2 preload models, got %v", c.PreloadModels)
-}
+	if !c.LogRequests {
+		t.Error("expected LogRequests=true")
+	}
+	if !c.LogResponses {
+		t.Error("expected LogResponses=true")
+	}
+	if len(c.PreloadModels) != 2 {
+		t.Errorf("expected 2 preload models, got %v", c.PreloadModels)
+	}
 }
 
 func TestModelOverrides_RoundTrip(t *testing.T) {
-temp := 0.5
-tokens := 512
-cfg := Config{
-ModelOverrides: map[string]ModelParams{
-"llama-7b": {
-Temperature: &temp,
-MaxTokens:   &tokens,
-Stop:        []string{"</s>"},
-},
-},
-}
-path := writeJSON(t, cfg)
-loaded := Default()
-if err := loaded.LoadFile(path); err != nil {
-t.Fatalf("load: %v", err)
-}
-p, ok := loaded.ModelOverrides["llama-7b"]
-if !ok {
-t.Fatal("expected llama-7b override to be present")
-}
-if p.Temperature == nil || *p.Temperature != 0.5 {
-t.Errorf("unexpected Temperature: %v", p.Temperature)
-}
-if p.MaxTokens == nil || *p.MaxTokens != 512 {
-t.Errorf("unexpected MaxTokens: %v", p.MaxTokens)
-}
-if len(p.Stop) != 1 || p.Stop[0] != "</s>" {
-t.Errorf("unexpected Stop: %v", p.Stop)
-}
+	temp := 0.5
+	tokens := 512
+	cfg := Config{
+		ModelOverrides: map[string]ModelParams{
+			"llama-7b": {
+				Temperature: &temp,
+				MaxTokens:   &tokens,
+				Stop:        []string{"</s>"},
+			},
+		},
+	}
+	path := writeJSON(t, cfg)
+	loaded := Default()
+	if err := loaded.LoadFile(path); err != nil {
+		t.Fatalf("load: %v", err)
+	}
+	p, ok := loaded.ModelOverrides["llama-7b"]
+	if !ok {
+		t.Fatal("expected llama-7b override to be present")
+	}
+	if p.Temperature == nil || *p.Temperature != 0.5 {
+		t.Errorf("unexpected Temperature: %v", p.Temperature)
+	}
+	if p.MaxTokens == nil || *p.MaxTokens != 512 {
+		t.Errorf("unexpected MaxTokens: %v", p.MaxTokens)
+	}
+	if len(p.Stop) != 1 || p.Stop[0] != "</s>" {
+		t.Errorf("unexpected Stop: %v", p.Stop)
+	}
 }
