@@ -339,7 +339,7 @@ This project leverages gollama.cpp's pure Go bindings (no CGO), automatic librar
 ### 8.2 Installation Methods
 
 - [ ] Direct binary downloads
-- [ ] Docker: `docker run gollama-server`
+- [ ] Docker: `docker run packllama`
 - [ ] Systemd service for Linux
 - [ ] Windows installer/portable
 - [ ] macOS DMG or Homebrew
@@ -406,7 +406,7 @@ This project leverages gollama.cpp's pure Go bindings (no CGO), automatic librar
 
 ### 9.5 IDE Integration
 
-- [ ] VS Code extension for local gollama server
+- [ ] VS Code extension for local packllama server
 - [ ] Extension marketplace listing
 - [ ] Language-specific IDE plugin templates
 - [ ] Editor context passing protocol
