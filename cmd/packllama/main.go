@@ -41,6 +41,8 @@ func run() error {
 		AllowedOrigins:  cfg.AllowedOrigins,
 		ShutdownTimeout: cfg.ShutdownTimeout,
 		Logger:          logger,
+		LogRequests:     cfg.LogRequests,
+		LogResponses:    cfg.LogResponses,
 	}, svc).Start(ctx)
 }
 

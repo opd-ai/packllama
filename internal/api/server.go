@@ -30,7 +30,7 @@ func NewServer(cfg Config, svc service.InferenceService) *Server {
 		logger: cfg.Logger,
 		httpServer: &http.Server{
 			Addr:    cfg.addr(),
-			Handler: NewHandler(cfg.Logger, cfg.AllowedOrigins, svc),
+			Handler: newHandlerWithConfig(cfg, svc),
 		},
 	}
 }

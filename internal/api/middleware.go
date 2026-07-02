@@ -1,8 +1,10 @@
 package api
 
 import (
+	"bytes"
 	"context"
 	"fmt"
+	"io"
 	"log/slog"
 	"net/http"
 	"strings"
@@ -31,20 +33,44 @@ func withRequestID(next http.Handler) http.Handler {
 	})
 }
 
-func withLogging(logger *slog.Logger) func(http.Handler) http.Handler {
+func withLogging(logger *slog.Logger, logRequests, logResponses bool) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			var bodyBytes []byte
+			if logRequests && r.Body != nil {
+				bodyBytes, _ = io.ReadAll(r.Body)
+				r.Body = io.NopCloser(bytes.NewReader(bodyBytes))
+			}
+
 			recorder := &statusRecorder{ResponseWriter: w, statusCode: http.StatusOK}
+			if logResponses {
+				recorder.buf = &bytes.Buffer{}
+			}
 			start := time.Now()
 			next.ServeHTTP(recorder, r)
 
-			logger.Info("request completed",
+			args := []any{
 				"method", r.Method,
 				"path", r.URL.Path,
 				"status", recorder.statusCode,
 				"duration", time.Since(start),
+				"bytes", recorder.bytesWritten,
 				"request_id", RequestIDFromContext(r.Context()),
-			)
+			}
+			if logRequests && len(bodyBytes) > 0 {
+				args = append(args, "request_body", string(bodyBytes))
+			}
+			if logResponses && recorder.buf != nil && recorder.buf.Len() > 0 {
+				args = append(args, "response_body", recorder.buf.String())
+			}
+
+			level := slog.LevelInfo
+			if recorder.statusCode >= 500 {
+				level = slog.LevelError
+			} else if recorder.statusCode >= 400 {
+				level = slog.LevelWarn
+			}
+			logger.Log(r.Context(), level, "request completed", args...)
 		})
 	}
 }
@@ -99,12 +125,23 @@ func allowsOrigin(allowedOrigins []string, origin string) bool {
 
 type statusRecorder struct {
 	http.ResponseWriter
-	statusCode int
+	statusCode   int
+	bytesWritten int64
+	buf          *bytes.Buffer // non-nil when response body capture is enabled
 }
 
 func (r *statusRecorder) WriteHeader(statusCode int) {
 	r.statusCode = statusCode
 	r.ResponseWriter.WriteHeader(statusCode)
+}
+
+func (r *statusRecorder) Write(b []byte) (int, error) {
+	n, err := r.ResponseWriter.Write(b)
+	r.bytesWritten += int64(n)
+	if r.buf != nil {
+		r.buf.Write(b[:n])
+	}
+	return n, err
 }
 
 // Flush implements http.Flusher by forwarding to the underlying writer when supported.

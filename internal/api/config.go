@@ -15,6 +15,13 @@ type Config struct {
 	AllowedOrigins  []string
 	ShutdownTimeout time.Duration
 	Logger          *slog.Logger
+
+	// LogRequests enables debug-level logging of request bodies.
+	// This is expensive and should be used for troubleshooting only.
+	LogRequests bool
+	// LogResponses enables debug-level logging of response bodies.
+	// This is expensive and should be used for troubleshooting only.
+	LogResponses bool
 }
 
 func (c Config) withDefaults() Config {
