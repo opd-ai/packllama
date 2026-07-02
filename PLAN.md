@@ -21,7 +21,7 @@ This project leverages gollama.cpp's pure Go bindings (no CGO), automatic librar
 ### 1.1 Project Structure
 
 - [ ] Create new repository with clear module organization
-  - `./cmd/gollama-server` - CLI application entry point
+  - `./cmd/packllama` - CLI application entry point
   - `./internal/api` - HTTP API handlers
   - `./internal/service` - Business logic layer
   - `./internal/ui` - Ebitengine UI components (package, not full service)
@@ -343,7 +343,7 @@ This project leverages gollama.cpp's pure Go bindings (no CGO), automatic librar
 - [ ] Systemd service for Linux
 - [ ] Windows installer/portable
 - [ ] macOS DMG or Homebrew
-- [ ] Go library: `go get github.com/dianlight/gollama.cpp-server`
+- [ ] Go library: `go get github.com/opd-ai/packllama`
 
 ### 8.3 Release Management
 
@@ -420,7 +420,7 @@ This project leverages gollama.cpp's pure Go bindings (no CGO), automatic librar
 
 ```text
 .
-├── cmd/gollama-server
+├── cmd/packllama
 ├── docs
 ├── examples
 ├── internal
