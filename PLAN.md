@@ -86,9 +86,9 @@ This project leverages gollama.cpp's pure Go bindings (no CGO), automatic librar
 
 ### 2.4 Embeddings Support
 
-- [ ] Implement `/v1/embeddings` POST endpoint
-- [ ] Support single and batch embedding requests
-- [ ] Return embeddings in OpenAI format
+- [x] Implement `/v1/embeddings` POST endpoint
+- [x] Support single and batch embedding requests
+- [x] Return embeddings in OpenAI format
 - [ ] Support dimension reduction options if applicable
 
 ### 2.5 API Testing
@@ -105,26 +105,26 @@ This project leverages gollama.cpp's pure Go bindings (no CGO), automatic librar
 
 ### 3.1 Configuration System
 
-- [ ] Create YAML/TOML configuration file support
-- [ ] Environment variable overrides
-- [ ] CLI flags for common settings
-- [ ] Configuration validation on startup
-- [ ] Default configuration with sane defaults
+- [x] Create JSON configuration file support
+- [x] Environment variable overrides
+- [x] CLI flags for common settings
+- [x] Configuration validation on startup
+- [x] Default configuration with sane defaults
 - [ ] Per-model parameter overrides
 
 ### 3.2 Model Discovery & Management
 
-- [ ] Support loading from configurable model directories
-- [ ] Implement model file detection (`*.gguf`)
-- [ ] Create model registry with metadata caching
-- [ ] Support model aliases (for example, `"default"` → actual model path)
+- [x] Support loading from configurable model directories
+- [x] Implement model file detection (`*.gguf`)
+- [x] Create model registry with metadata caching
+- [x] Support model aliases (for example, `"default"` → actual model path)
 - [ ] Auto-download models from Hugging Face (optional)
 - [ ] Model preload on startup option
 
 ### 3.3 Logging & Observability
 
-- [ ] Structured logging with context
-- [ ] Debug logging mode flag
+- [x] Structured logging with context
+- [x] Debug logging mode flag
 - [ ] Request/response logging options (can be expensive)
 - [ ] Performance metrics logging (tokens/sec, latency)
 - [ ] Error and warning aggregation

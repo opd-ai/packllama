@@ -1,5 +1,7 @@
 package api
 
+import "encoding/json"
+
 // Message represents a single chat message in OpenAI format.
 type Message struct {
 	Role    string `json:"role"`
@@ -96,6 +98,56 @@ type ModelObject struct {
 	Object  string `json:"object"`
 	Created int64  `json:"created"`
 	OwnedBy string `json:"owned_by"`
+}
+
+// EmbeddingRequest is the request body for POST /v1/embeddings.
+type EmbeddingRequest struct {
+	Model string `json:"model"`
+	// Input may be a single string or an array of strings.
+	// After decoding it is always stored as a slice.
+	Input []string `json:"-"`
+}
+
+// UnmarshalJSON handles both string and []string values for the input field.
+func (r *EmbeddingRequest) UnmarshalJSON(data []byte) error {
+	var raw struct {
+		Model string          `json:"model"`
+		Input json.RawMessage `json:"input"`
+	}
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return err
+	}
+	r.Model = raw.Model
+	if len(raw.Input) == 0 {
+		return nil
+	}
+	// Try array first, then single string.
+	var arr []string
+	if err := json.Unmarshal(raw.Input, &arr); err == nil {
+		r.Input = arr
+		return nil
+	}
+	var s string
+	if err := json.Unmarshal(raw.Input, &s); err != nil {
+		return err
+	}
+	r.Input = []string{s}
+	return nil
+}
+
+// EmbeddingObject is one entry in the embeddings response data array.
+type EmbeddingObject struct {
+	Object    string    `json:"object"`
+	Index     int       `json:"index"`
+	Embedding []float32 `json:"embedding"`
+}
+
+// EmbeddingResponse is the response for POST /v1/embeddings.
+type EmbeddingResponse struct {
+	Object string            `json:"object"`
+	Data   []EmbeddingObject `json:"data"`
+	Model  string            `json:"model"`
+	Usage  UsageInfo         `json:"usage"`
 }
 
 // ModelListResponse is the response for GET /v1/models.

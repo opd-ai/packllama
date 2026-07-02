@@ -16,12 +16,14 @@ import (
 
 // stubInference is a test double for service.InferenceService.
 type stubInference struct {
-	chatChunks   []service.ChatChunk
-	textChunks   []service.CompletionChunk
-	models       []service.ModelInfo
-	chatErr      error
-	textErr      error
-	listErr      error
+	chatChunks []service.ChatChunk
+	textChunks []service.CompletionChunk
+	models     []service.ModelInfo
+	embeddings []service.EmbeddingVector
+	chatErr    error
+	textErr    error
+	listErr    error
+	embedErr   error
 }
 
 func (s *stubInference) ChatComplete(_ context.Context, _ service.ChatRequest) (<-chan service.ChatChunk, error) {
@@ -46,6 +48,10 @@ func (s *stubInference) Complete(_ context.Context, _ service.TextRequest) (<-ch
 	}
 	close(ch)
 	return ch, nil
+}
+
+func (s *stubInference) Embed(_ context.Context, _ service.EmbeddingRequest) ([]service.EmbeddingVector, error) {
+	return s.embeddings, s.embedErr
 }
 
 func (s *stubInference) ListModels(_ context.Context) ([]service.ModelInfo, error) {
@@ -328,4 +334,92 @@ func sseLines(t *testing.T, body string) []string {
 		}
 	}
 	return out
+}
+
+// --- /v1/embeddings ---
+
+func TestEmbeddings_SingleInput(t *testing.T) {
+	svc := &stubInference{
+		embeddings: []service.EmbeddingVector{
+			{Index: 0, Embedding: []float32{0.1, 0.2, 0.3}},
+		},
+	}
+	body, _ := json.Marshal(map[string]any{
+		"model": "embed-model",
+		"input": "hello world",
+	})
+
+	recorder := httptest.NewRecorder()
+	newTestHandler(svc).ServeHTTP(recorder,
+		httptest.NewRequest(http.MethodPost, "/v1/embeddings", bytes.NewReader(body)))
+
+	if recorder.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d: %s", recorder.Code, recorder.Body)
+	}
+	var resp EmbeddingResponse
+	if err := json.NewDecoder(recorder.Body).Decode(&resp); err != nil {
+		t.Fatalf("decode: %v", err)
+	}
+	if resp.Object != "list" {
+		t.Fatalf("expected object=list, got %q", resp.Object)
+	}
+	if len(resp.Data) != 1 {
+		t.Fatalf("expected 1 embedding, got %d", len(resp.Data))
+	}
+	if resp.Data[0].Object != "embedding" {
+		t.Fatalf("expected object=embedding, got %q", resp.Data[0].Object)
+	}
+	if len(resp.Data[0].Embedding) != 3 {
+		t.Fatalf("expected 3 dimensions, got %d", len(resp.Data[0].Embedding))
+	}
+}
+
+func TestEmbeddings_BatchInput(t *testing.T) {
+	svc := &stubInference{
+		embeddings: []service.EmbeddingVector{
+			{Index: 0, Embedding: []float32{0.1}},
+			{Index: 1, Embedding: []float32{0.2}},
+		},
+	}
+	body, _ := json.Marshal(map[string]any{
+		"model": "embed-model",
+		"input": []string{"text one", "text two"},
+	})
+
+	recorder := httptest.NewRecorder()
+	newTestHandler(svc).ServeHTTP(recorder,
+		httptest.NewRequest(http.MethodPost, "/v1/embeddings", bytes.NewReader(body)))
+
+	if recorder.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d", recorder.Code)
+	}
+	var resp EmbeddingResponse
+	if err := json.NewDecoder(recorder.Body).Decode(&resp); err != nil {
+		t.Fatalf("decode: %v", err)
+	}
+	if len(resp.Data) != 2 {
+		t.Fatalf("expected 2 embeddings, got %d", len(resp.Data))
+	}
+}
+
+func TestEmbeddings_MissingModel(t *testing.T) {
+	body, _ := json.Marshal(map[string]any{"input": "hi"})
+	recorder := httptest.NewRecorder()
+	newTestHandler(&stubInference{}).ServeHTTP(recorder,
+		httptest.NewRequest(http.MethodPost, "/v1/embeddings", bytes.NewReader(body)))
+
+	if recorder.Code != http.StatusUnprocessableEntity {
+		t.Fatalf("expected 422, got %d", recorder.Code)
+	}
+}
+
+func TestEmbeddings_MissingInput(t *testing.T) {
+	body, _ := json.Marshal(map[string]any{"model": "m"})
+	recorder := httptest.NewRecorder()
+	newTestHandler(&stubInference{}).ServeHTTP(recorder,
+		httptest.NewRequest(http.MethodPost, "/v1/embeddings", bytes.NewReader(body)))
+
+	if recorder.Code != http.StatusUnprocessableEntity {
+		t.Fatalf("expected 422, got %d", recorder.Code)
+	}
 }
