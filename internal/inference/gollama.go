@@ -4,12 +4,21 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"runtime"
+	"slices"
 	"sync"
 
-	gollama "github.com/dianlight/gollama.cpp"
+	"github.com/dianlight/gollama.cpp"
+	"github.com/opd-ai/packllama/internal/service"
 )
 
 var ErrModelNotLoaded = errors.New("model not loaded")
+
+const (
+	defaultTemperature = 0.8
+	defaultTopP        = 0.95
+	defaultMaxTokens   = 256
+)
 
 // Parameters configures inference sampling behavior.
 type Parameters struct {
@@ -18,6 +27,26 @@ type Parameters struct {
 	MaxTokens   int
 	Stop        []string
 	GPULayers   int
+}
+
+// MapOpenAIRequest maps OpenAI-style request fields into backend parameters.
+func MapOpenAIRequest(req service.InferenceRequest) Parameters {
+	params := Parameters{
+		Temperature: defaultTemperature,
+		TopP:        defaultTopP,
+		MaxTokens:   defaultMaxTokens,
+		Stop:        slices.Clone(req.Stop),
+	}
+	if req.Temperature != nil && *req.Temperature >= 0 {
+		params.Temperature = *req.Temperature
+	}
+	if req.TopP != nil && *req.TopP > 0 && *req.TopP <= 1 {
+		params.TopP = *req.TopP
+	}
+	if req.MaxTokens != nil && *req.MaxTokens > 0 {
+		params.MaxTokens = *req.MaxTokens
+	}
+	return params
 }
 
 // TokenEvent is emitted for each streamed token.
@@ -195,5 +224,8 @@ func (g gollamaBackend) FreeModel(model any) {
 }
 
 func (g gollamaBackend) Generate(_ context.Context, _ any, _ string, _ Parameters, _ TokenCallback) error {
-	return errors.New("token generation backend not wired")
+	if runtime.GOOS != "darwin" {
+		return errors.New("token generation is currently supported only on macOS in gollama.cpp")
+	}
+	return errors.New("token generation is not yet wired in this backend")
 }

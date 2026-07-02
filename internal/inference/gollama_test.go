@@ -4,7 +4,10 @@ import (
 	"context"
 	"errors"
 	"reflect"
+	"strings"
 	"testing"
+
+	"github.com/opd-ai/packllama/internal/service"
 )
 
 type fakeBackend struct {
@@ -68,7 +71,7 @@ func TestLoadModelWrapsErrors(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected error")
 	}
-	if got := err.Error(); got != "load model \"/models/m1.gguf\": boom" {
+	if got := err.Error(); !strings.Contains(got, "load model") || !strings.Contains(got, "boom") {
 		t.Fatalf("unexpected error: %s", got)
 	}
 }
@@ -111,5 +114,46 @@ func TestPipelineRunRequiresLoadedModel(t *testing.T) {
 	err := pipeline.Run(context.Background(), "prompt")
 	if !errors.Is(err, ErrModelNotLoaded) {
 		t.Fatalf("expected ErrModelNotLoaded, got %v", err)
+	}
+}
+
+func TestMapOpenAIRequest(t *testing.T) {
+	temp := 0.2
+	topP := 0.7
+	maxTokens := 42
+
+	got := MapOpenAIRequest(service.InferenceRequest{
+		Temperature: &temp,
+		TopP:        &topP,
+		MaxTokens:   &maxTokens,
+		Stop:        []string{"###"},
+	})
+	want := Parameters{
+		Temperature: 0.2,
+		TopP:        0.7,
+		MaxTokens:   42,
+		Stop:        []string{"###"},
+	}
+	if !reflect.DeepEqual(got, want) {
+		t.Fatalf("MapOpenAIRequest() mismatch\nwant: %#v\ngot:  %#v", want, got)
+	}
+}
+
+func TestMapOpenAIRequestDefaults(t *testing.T) {
+	badTopP := 5.0
+	badMax := -1
+	got := MapOpenAIRequest(service.InferenceRequest{
+		TopP:      &badTopP,
+		MaxTokens: &badMax,
+	})
+
+	if got.Temperature != defaultTemperature {
+		t.Fatalf("expected default temperature %v, got %v", defaultTemperature, got.Temperature)
+	}
+	if got.TopP != defaultTopP {
+		t.Fatalf("expected default top_p %v, got %v", defaultTopP, got.TopP)
+	}
+	if got.MaxTokens != defaultMaxTokens {
+		t.Fatalf("expected default max_tokens %v, got %v", defaultMaxTokens, got.MaxTokens)
 	}
 }

@@ -62,7 +62,7 @@ This project leverages gollama.cpp's pure Go bindings (no CGO), automatic librar
 - [x] Support OpenAI request schema (messages array with roles)
 - [x] Implement streaming responses with Server-Sent Events (SSE)
 - [x] Support parameters: `model`, `temperature`, `top_p`, `max_tokens`, `stop`, `stream`
-- [ ] Map OpenAI parameters to gollama.cpp inference settings
+- [x] Map OpenAI parameters to gollama.cpp inference settings
 - [x] Implement response schema matching OpenAI format (including `finish_reason`)
 - [x] Add request validation with helpful error messages
 - [x] Write comprehensive endpoint tests
