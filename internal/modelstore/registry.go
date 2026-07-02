@@ -25,6 +25,15 @@ type Entry struct {
 	ModTime time.Time
 	// OwnedBy is the owner label; defaults to "local".
 	OwnedBy string
+
+	// Metadata fields — populated when available (e.g. from GGUF header or inference backend).
+
+	// ContextLength is the maximum context window in tokens. Zero when unknown.
+	ContextLength int64
+	// ParameterCount is the number of model parameters. Zero when unknown.
+	ParameterCount int64
+	// Quantization describes the weight quantization scheme (e.g. "Q4_K_M"). Empty when unknown.
+	Quantization string
 }
 
 // Registry holds a cached list of discovered models and supports aliases.

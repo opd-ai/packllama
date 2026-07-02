@@ -98,6 +98,11 @@ type ModelObject struct {
 	Object  string `json:"object"`
 	Created int64  `json:"created"`
 	OwnedBy string `json:"owned_by"`
+
+	// Extended metadata — zero/empty when not yet populated by the inference backend.
+	ContextLength  int64  `json:"context_length,omitempty"`
+	ParameterCount int64  `json:"parameter_count,omitempty"`
+	Quantization   string `json:"quantization,omitempty"`
 }
 
 // EmbeddingRequest is the request body for POST /v1/embeddings.
