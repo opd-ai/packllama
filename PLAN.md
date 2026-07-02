@@ -44,13 +44,13 @@ This project leverages gollama.cpp's pure Go bindings (no CGO), automatic librar
 
 ### 1.3 gollama.cpp Integration Layer
 
-- [ ] Create wrapper package around gollama.cpp library functions
-- [ ] Implement model loading with error handling
-- [ ] Create inference pipeline abstraction
-- [ ] Implement token streaming callback mechanism
-- [ ] Add model state management (loaded/unloaded)
-- [ ] Create configuration for inference parameters
-- [ ] Handle GPU acceleration detection and fallback
+- [x] Create wrapper package around gollama.cpp library functions
+- [x] Implement model loading with error handling
+- [x] Create inference pipeline abstraction
+- [x] Implement token streaming callback mechanism
+- [x] Add model state management (loaded/unloaded)
+- [x] Create configuration for inference parameters
+- [x] Handle GPU acceleration detection and fallback
 
 ---
 
