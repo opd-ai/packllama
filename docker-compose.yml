@@ -1,0 +1,23 @@
+services:
+  packllama:
+    build: .
+    image: ghcr.io/opd-ai/packllama:latest
+    ports:
+      - "8080:8080"
+    volumes:
+      # Mount a local directory containing .gguf model files.
+      - ./models:/models
+    environment:
+      PACKLLAMA_HOST: "0.0.0.0"
+      PACKLLAMA_PORT: "8080"
+      PACKLLAMA_MODELS_DIR: "/models"
+      PACKLLAMA_LOG_LEVEL: "info"
+      PACKLLAMA_LOG_FORMAT: "json"
+      # Uncomment to expose the Prometheus metrics endpoint:
+      # PACKLLAMA_ENABLE_METRICS: "true"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3

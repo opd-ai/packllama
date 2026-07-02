@@ -15,6 +15,16 @@ type Config struct {
 	AllowedOrigins  []string
 	ShutdownTimeout time.Duration
 	Logger          *slog.Logger
+
+	// LogRequests enables request-body logging on the request completion entry.
+	// This is expensive and should be used for troubleshooting only.
+	LogRequests bool
+	// LogResponses enables response-body logging on the request completion entry.
+	// This is expensive and should be used for troubleshooting only.
+	LogResponses bool
+
+	// EnableMetrics exposes a Prometheus /metrics endpoint when true.
+	EnableMetrics bool
 }
 
 func (c Config) withDefaults() Config {

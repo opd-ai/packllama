@@ -49,12 +49,20 @@ type ModelInfo struct {
 	ID      string
 	OwnedBy string
 	Created int64
+
+	// ContextLength is the maximum context window in tokens. Zero when unknown.
+	ContextLength int64
+	// ParameterCount is the number of model parameters. Zero when unknown.
+	ParameterCount int64
+	// Quantization describes the weight quantization scheme (e.g. "Q4_K_M"). Empty when unknown.
+	Quantization string
 }
 
 // EmbeddingRequest carries parameters for a single or batch embedding request.
 type EmbeddingRequest struct {
 	InferenceRequest
-	Input []string // one or more texts to embed
+	Input      []string // one or more texts to embed
+	Dimensions *int     // optional output dimension reduction; nil = backend default
 }
 
 // EmbeddingVector holds one embedding result.

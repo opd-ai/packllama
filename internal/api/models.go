@@ -19,10 +19,13 @@ func handleListModels(svc service.InferenceService) http.HandlerFunc {
 		objects := make([]ModelObject, len(models))
 		for i, m := range models {
 			objects[i] = ModelObject{
-				ID:      m.ID,
-				Object:  "model",
-				Created: modelCreatedAt(m.Created),
-				OwnedBy: m.OwnedBy,
+				ID:             m.ID,
+				Object:         "model",
+				Created:        modelCreatedAt(m.Created),
+				OwnedBy:        m.OwnedBy,
+				ContextLength:  m.ContextLength,
+				ParameterCount: m.ParameterCount,
+				Quantization:   m.Quantization,
 			}
 		}
 		writeJSON(w, http.StatusOK, ModelListResponse{
@@ -50,10 +53,13 @@ func handleGetModel(svc service.InferenceService) http.HandlerFunc {
 		for _, m := range models {
 			if m.ID == id {
 				writeJSON(w, http.StatusOK, ModelObject{
-					ID:      m.ID,
-					Object:  "model",
-					Created: modelCreatedAt(m.Created),
-					OwnedBy: m.OwnedBy,
+					ID:             m.ID,
+					Object:         "model",
+					Created:        modelCreatedAt(m.Created),
+					OwnedBy:        m.OwnedBy,
+					ContextLength:  m.ContextLength,
+					ParameterCount: m.ParameterCount,
+					Quantization:   m.Quantization,
 				})
 				return
 			}

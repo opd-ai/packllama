@@ -64,7 +64,7 @@ func TestRecoveryMiddleware(t *testing.T) {
 		panic("boom")
 	}),
 		withRequestID,
-		withLogging(testLogger(io.Discard)),
+		withLogging(testLogger(io.Discard), false, false),
 		withRecovery(testLogger(io.Discard)),
 	)
 

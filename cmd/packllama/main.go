@@ -12,6 +12,8 @@ import (
 
 	"github.com/opd-ai/packllama/internal/api"
 	"github.com/opd-ai/packllama/internal/config"
+	"github.com/opd-ai/packllama/internal/modelstore"
+	"github.com/opd-ai/packllama/internal/service"
 )
 
 func main() {
@@ -31,13 +33,35 @@ func run() error {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
+	svc := buildService(cfg, logger)
+
 	return api.NewServer(api.Config{
 		Host:            cfg.Host,
 		Port:            cfg.Port,
 		AllowedOrigins:  cfg.AllowedOrigins,
 		ShutdownTimeout: cfg.ShutdownTimeout,
 		Logger:          logger,
-	}, nil).Start(ctx)
+		LogRequests:     cfg.LogRequests,
+		LogResponses:    cfg.LogResponses,
+		EnableMetrics:   cfg.EnableMetrics,
+	}, svc).Start(ctx)
+}
+
+// buildService constructs an InferenceService from cfg. When ModelsDir is set
+// the service discovers local GGUF files so the /v1/models endpoints work
+// without a full inference backend.
+func buildService(cfg config.Config, logger *slog.Logger) service.InferenceService {
+	if cfg.ModelsDir == "" {
+		return nil
+	}
+	registry := modelstore.New()
+	if err := registry.Scan(cfg.ModelsDir, false); err != nil {
+		logger.Warn("model discovery failed", "dir", cfg.ModelsDir, "error", err)
+	}
+	if cfg.DefaultModel != "" && !registry.AddAlias("default", cfg.DefaultModel) {
+		logger.Warn("default model not found during discovery", "model", cfg.DefaultModel, "dir", cfg.ModelsDir)
+	}
+	return service.NewRegistryService(registry)
 }
 
 // loadConfig builds a Config by merging defaults, optional file, env vars, and flags.

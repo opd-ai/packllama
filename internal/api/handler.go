@@ -4,12 +4,20 @@ import (
 	"log/slog"
 	"net/http"
 
+	"github.com/prometheus/client_golang/prometheus"
+
 	"github.com/opd-ai/packllama/internal/service"
 )
 
 // NewHandler builds the HTTP handler for the packllama API. When svc is nil,
 // all inference endpoints return 503 Service Unavailable.
 func NewHandler(logger *slog.Logger, allowedOrigins []string, svc service.InferenceService) http.Handler {
+	return newHandlerWithConfig(Config{Logger: logger, AllowedOrigins: allowedOrigins}, svc)
+}
+
+// newHandlerWithConfig builds the handler using all Config fields.
+func newHandlerWithConfig(cfg Config, svc service.InferenceService) http.Handler {
+	cfg = cfg.withDefaults()
 	health := service.NewHealthService()
 	mux := http.NewServeMux()
 
@@ -18,11 +26,19 @@ func NewHandler(logger *slog.Logger, allowedOrigins []string, svc service.Infere
 	})
 	registerInferenceRoutes(mux, svc)
 
+	var m *serverMetrics
+	if cfg.EnableMetrics {
+		reg := prometheus.NewRegistry()
+		m = newServerMetrics(reg)
+		mux.Handle("GET /metrics", metricsHandler(reg))
+	}
+
 	return chain(mux,
-		withCORS(allowedOrigins),
+		withCORS(cfg.AllowedOrigins),
 		withRequestID,
-		withLogging(logger),
-		withRecovery(logger),
+		withLogging(cfg.Logger, cfg.LogRequests, cfg.LogResponses),
+		withMetrics(m),
+		withRecovery(cfg.Logger),
 	)
 }
 

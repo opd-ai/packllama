@@ -79,25 +79,25 @@ This project leverages gollama.cpp's pure Go bindings (no CGO), automatic librar
 
 - [x] Implement `/v1/models` GET (list available models)
 - [x] Implement `/v1/models/{model_id}` GET (model info)
-- [ ] Add model metadata (context length, parameters, quantization)
+- [x] Add model metadata (context length, parameters, quantization)
 - [ ] Implement `POST /v1/models` to load new models
 - [ ] Implement `DELETE /v1/models/{model_id}` to unload models
-- [ ] Add model discovery from configurable directories
+- [x] Add model discovery from configurable directories
 
 ### 2.4 Embeddings Support
 
 - [x] Implement `/v1/embeddings` POST endpoint
 - [x] Support single and batch embedding requests
 - [x] Return embeddings in OpenAI format
-- [ ] Support dimension reduction options if applicable
+- [x] Support dimension reduction options if applicable
 
 ### 2.5 API Testing
 
-- [ ] Create test suite for all endpoints
+- [x] Create test suite for all endpoints
 - [ ] Test with OpenAI Python SDK (`openai` library)
 - [ ] Test with other LLM frameworks (langchain, llama-index)
-- [ ] Validate error handling and edge cases
-- [ ] Create API usage examples and curl commands
+- [x] Validate error handling and edge cases
+- [x] Create API usage examples and curl commands
 
 ---
 
@@ -110,7 +110,7 @@ This project leverages gollama.cpp's pure Go bindings (no CGO), automatic librar
 - [x] CLI flags for common settings
 - [x] Configuration validation on startup
 - [x] Default configuration with sane defaults
-- [ ] Per-model parameter overrides
+- [x] Per-model parameter overrides
 
 ### 3.2 Model Discovery & Management
 
@@ -119,24 +119,24 @@ This project leverages gollama.cpp's pure Go bindings (no CGO), automatic librar
 - [x] Create model registry with metadata caching
 - [x] Support model aliases (for example, `"default"` → actual model path)
 - [ ] Auto-download models from Hugging Face (optional)
-- [ ] Model preload on startup option
+- [x] Model preload on startup option
 
 ### 3.3 Logging & Observability
 
 - [x] Structured logging with context
 - [x] Debug logging mode flag
-- [ ] Request/response logging options (can be expensive)
-- [ ] Performance metrics logging (tokens/sec, latency)
-- [ ] Error and warning aggregation
-- [ ] Prometheus metrics export endpoint (optional Phase 3.5+)
+- [x] Request/response logging options (can be expensive)
+- [x] Performance metrics logging (tokens/sec, latency)
+- [x] Error and warning aggregation
+- [x] Prometheus metrics export endpoint (optional Phase 3.5+)
 
 ### 3.4 Deployment Artifacts
 
-- [ ] Cross-platform binary builds (Windows, macOS, Linux)
-- [ ] Docker image with GPU support documentation
-- [ ] Systemd service file for Linux deployments
-- [ ] Example `docker-compose.yml`
-- [ ] Installation documentation for each platform
+- [x] Cross-platform binary builds (Windows, macOS, Linux)
+- [x] Docker image with GPU support documentation
+- [x] Systemd service file for Linux deployments
+- [x] Example `docker-compose.yml`
+- [x] Installation documentation for each platform
 
 ---
 

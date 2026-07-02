@@ -1,0 +1,29 @@
+[Unit]
+Description=packllama — local LLM inference service
+After=network.target
+
+[Service]
+Type=simple
+User=packllama
+Group=packllama
+WorkingDirectory=/var/lib/packllama
+ExecStart=/usr/local/bin/packllama \
+    --host 127.0.0.1 \
+    --port 8080 \
+    --models-dir /var/lib/packllama/models \
+    --log-level info \
+    --log-format json
+Restart=on-failure
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+
+# Security hardening
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/packllama
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

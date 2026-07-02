@@ -1,8 +1,10 @@
 package api
 
 import (
+	"bytes"
 	"context"
 	"fmt"
+	"io"
 	"log/slog"
 	"net/http"
 	"strings"
@@ -31,21 +33,74 @@ func withRequestID(next http.Handler) http.Handler {
 	})
 }
 
-func withLogging(logger *slog.Logger) func(http.Handler) http.Handler {
+func withLogging(logger *slog.Logger, logRequests, logResponses bool) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			recorder := &statusRecorder{ResponseWriter: w, statusCode: http.StatusOK}
+			bodyBytes := captureRequestBody(r, logRequests)
+			recorder := newStatusRecorder(w, logResponses)
 			start := time.Now()
 			next.ServeHTTP(recorder, r)
 
-			logger.Info("request completed",
-				"method", r.Method,
-				"path", r.URL.Path,
-				"status", recorder.statusCode,
-				"duration", time.Since(start),
-				"request_id", RequestIDFromContext(r.Context()),
-			)
+			args := baseLogArgs(r, recorder, time.Since(start))
+			args = appendVerboseLogs(args, bodyBytes, recorder, logRequests, logResponses)
+			logger.Log(r.Context(), httpLogLevel(recorder.statusCode), "request completed", args...)
 		})
+	}
+}
+
+// captureRequestBody reads and restores the request body when logRequests is true.
+func captureRequestBody(r *http.Request, enabled bool) []byte {
+	if !enabled || r.Body == nil {
+		return nil
+	}
+	// Errors are intentionally ignored: a partial read still restores a
+	// valid (possibly truncated) body for the downstream handler via NopCloser.
+	b, _ := io.ReadAll(r.Body)
+	r.Body = io.NopCloser(bytes.NewReader(b))
+	return b
+}
+
+// newStatusRecorder wraps w and optionally enables response body capture.
+func newStatusRecorder(w http.ResponseWriter, captureBody bool) *statusRecorder {
+	rec := &statusRecorder{ResponseWriter: w, statusCode: http.StatusOK}
+	if captureBody {
+		rec.buf = &bytes.Buffer{}
+	}
+	return rec
+}
+
+// baseLogArgs returns the fixed set of log fields present on every request.
+func baseLogArgs(r *http.Request, rec *statusRecorder, dur time.Duration) []any {
+	return []any{
+		"method", r.Method,
+		"path", r.URL.Path,
+		"status", rec.statusCode,
+		"duration", dur,
+		"bytes", rec.bytesWritten,
+		"request_id", RequestIDFromContext(r.Context()),
+	}
+}
+
+// appendVerboseLogs optionally appends request/response body fields.
+func appendVerboseLogs(args []any, reqBody []byte, rec *statusRecorder, logReq, logResp bool) []any {
+	if logReq && len(reqBody) > 0 {
+		args = append(args, "request_body", string(reqBody))
+	}
+	if logResp && rec.buf != nil && rec.buf.Len() > 0 {
+		args = append(args, "response_body", rec.buf.String())
+	}
+	return args
+}
+
+// httpLogLevel maps HTTP status codes to slog levels.
+func httpLogLevel(statusCode int) slog.Level {
+	switch {
+	case statusCode >= 500:
+		return slog.LevelError
+	case statusCode >= 400:
+		return slog.LevelWarn
+	default:
+		return slog.LevelInfo
 	}
 }
 
@@ -99,12 +154,23 @@ func allowsOrigin(allowedOrigins []string, origin string) bool {
 
 type statusRecorder struct {
 	http.ResponseWriter
-	statusCode int
+	statusCode   int
+	bytesWritten int64
+	buf          *bytes.Buffer // non-nil when response body capture is enabled
 }
 
 func (r *statusRecorder) WriteHeader(statusCode int) {
 	r.statusCode = statusCode
 	r.ResponseWriter.WriteHeader(statusCode)
+}
+
+func (r *statusRecorder) Write(b []byte) (int, error) {
+	n, err := r.ResponseWriter.Write(b)
+	r.bytesWritten += int64(n)
+	if r.buf != nil {
+		r.buf.Write(b[:n])
+	}
+	return n, err
 }
 
 // Flush implements http.Flusher by forwarding to the underlying writer when supported.
