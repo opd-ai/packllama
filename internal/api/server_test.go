@@ -16,7 +16,7 @@ import (
 )
 
 func TestHealthEndpoint(t *testing.T) {
-	handler := NewHandler(testLogger(io.Discard), []string{"http://localhost:3000"})
+	handler := NewHandler(testLogger(io.Discard), []string{"http://localhost:3000"}, nil)
 	request := httptest.NewRequest(http.MethodGet, "/health", nil)
 	request.Header.Set("Origin", "http://localhost:3000")
 
@@ -45,7 +45,7 @@ func TestHealthEndpoint(t *testing.T) {
 func TestLoggingIncludesRequestMetadata(t *testing.T) {
 	var logOutput bytes.Buffer
 	logger := testLogger(&logOutput)
-	handler := NewHandler(logger, nil)
+	handler := NewHandler(logger, nil, nil)
 
 	recorder := httptest.NewRecorder()
 	handler.ServeHTTP(recorder, httptest.NewRequest(http.MethodGet, "/health", nil))
@@ -88,7 +88,7 @@ func TestServerStartAndShutdown(t *testing.T) {
 		Port:            0,
 		ShutdownTimeout: time.Second,
 		Logger:          testLogger(io.Discard),
-	})
+	}, nil)
 
 	errs := make(chan error, 1)
 	go func() {

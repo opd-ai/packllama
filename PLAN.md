@@ -58,27 +58,27 @@ This project leverages gollama.cpp's pure Go bindings (no CGO), automatic librar
 
 ### 2.1 Chat Completions Endpoint
 
-- [ ] Implement `/v1/chat/completions` POST endpoint
-- [ ] Support OpenAI request schema (messages array with roles)
-- [ ] Implement streaming responses with Server-Sent Events (SSE)
-- [ ] Support parameters: `model`, `temperature`, `top_p`, `max_tokens`, `stop`, `stream`
+- [x] Implement `/v1/chat/completions` POST endpoint
+- [x] Support OpenAI request schema (messages array with roles)
+- [x] Implement streaming responses with Server-Sent Events (SSE)
+- [x] Support parameters: `model`, `temperature`, `top_p`, `max_tokens`, `stop`, `stream`
 - [ ] Map OpenAI parameters to gollama.cpp inference settings
-- [ ] Implement response schema matching OpenAI format (including `finish_reason`)
-- [ ] Add request validation with helpful error messages
-- [ ] Write comprehensive endpoint tests
+- [x] Implement response schema matching OpenAI format (including `finish_reason`)
+- [x] Add request validation with helpful error messages
+- [x] Write comprehensive endpoint tests
 
 ### 2.2 Text Completions Endpoint
 
-- [ ] Implement `/v1/completions` POST endpoint
-- [ ] Support legacy completion format (string prompt)
-- [ ] Implement streaming for completions
-- [ ] Support completion-specific parameters (`prompt`, `suffix`, `max_tokens`)
+- [x] Implement `/v1/completions` POST endpoint
+- [x] Support legacy completion format (string prompt)
+- [x] Implement streaming for completions
+- [x] Support completion-specific parameters (`prompt`, `suffix`, `max_tokens`)
 - [ ] Create compatibility tests with OpenAI SDK
 
 ### 2.3 Model Management Endpoints
 
-- [ ] Implement `/v1/models` GET (list available models)
-- [ ] Implement `/v1/models/{model_id}` GET (model info)
+- [x] Implement `/v1/models` GET (list available models)
+- [x] Implement `/v1/models/{model_id}` GET (model info)
 - [ ] Add model metadata (context length, parameters, quantization)
 - [ ] Implement `POST /v1/models` to load new models
 - [ ] Implement `DELETE /v1/models/{model_id}` to unload models
@@ -86,9 +86,9 @@ This project leverages gollama.cpp's pure Go bindings (no CGO), automatic librar
 
 ### 2.4 Embeddings Support
 
-- [ ] Implement `/v1/embeddings` POST endpoint
-- [ ] Support single and batch embedding requests
-- [ ] Return embeddings in OpenAI format
+- [x] Implement `/v1/embeddings` POST endpoint
+- [x] Support single and batch embedding requests
+- [x] Return embeddings in OpenAI format
 - [ ] Support dimension reduction options if applicable
 
 ### 2.5 API Testing
@@ -105,26 +105,26 @@ This project leverages gollama.cpp's pure Go bindings (no CGO), automatic librar
 
 ### 3.1 Configuration System
 
-- [ ] Create YAML/TOML configuration file support
-- [ ] Environment variable overrides
-- [ ] CLI flags for common settings
-- [ ] Configuration validation on startup
-- [ ] Default configuration with sane defaults
+- [x] Create JSON configuration file support
+- [x] Environment variable overrides
+- [x] CLI flags for common settings
+- [x] Configuration validation on startup
+- [x] Default configuration with sane defaults
 - [ ] Per-model parameter overrides
 
 ### 3.2 Model Discovery & Management
 
-- [ ] Support loading from configurable model directories
-- [ ] Implement model file detection (`*.gguf`)
-- [ ] Create model registry with metadata caching
-- [ ] Support model aliases (for example, `"default"` → actual model path)
+- [x] Support loading from configurable model directories
+- [x] Implement model file detection (`*.gguf`)
+- [x] Create model registry with metadata caching
+- [x] Support model aliases (for example, `"default"` → actual model path)
 - [ ] Auto-download models from Hugging Face (optional)
 - [ ] Model preload on startup option
 
 ### 3.3 Logging & Observability
 
-- [ ] Structured logging with context
-- [ ] Debug logging mode flag
+- [x] Structured logging with context
+- [x] Debug logging mode flag
 - [ ] Request/response logging options (can be expensive)
 - [ ] Performance metrics logging (tokens/sec, latency)
 - [ ] Error and warning aggregation
