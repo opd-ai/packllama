@@ -61,7 +61,8 @@ type ModelInfo struct {
 // EmbeddingRequest carries parameters for a single or batch embedding request.
 type EmbeddingRequest struct {
 	InferenceRequest
-	Input []string // one or more texts to embed
+	Input      []string // one or more texts to embed
+	Dimensions *int     // optional output dimension reduction; nil = backend default
 }
 
 // EmbeddingVector holds one embedding result.

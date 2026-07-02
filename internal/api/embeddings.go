@@ -24,6 +24,7 @@ func handleEmbeddings(svc service.InferenceService) http.HandlerFunc {
 		svcReq := service.EmbeddingRequest{
 			InferenceRequest: service.InferenceRequest{Model: req.Model},
 			Input:            req.Input,
+			Dimensions:       req.Dimensions,
 		}
 		vectors, err := svc.Embed(r.Context(), svcReq)
 		if err != nil {

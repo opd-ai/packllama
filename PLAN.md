@@ -89,7 +89,7 @@ This project leverages gollama.cpp's pure Go bindings (no CGO), automatic librar
 - [x] Implement `/v1/embeddings` POST endpoint
 - [x] Support single and batch embedding requests
 - [x] Return embeddings in OpenAI format
-- [ ] Support dimension reduction options if applicable
+- [x] Support dimension reduction options if applicable
 
 ### 2.5 API Testing
 
@@ -97,7 +97,7 @@ This project leverages gollama.cpp's pure Go bindings (no CGO), automatic librar
 - [ ] Test with OpenAI Python SDK (`openai` library)
 - [ ] Test with other LLM frameworks (langchain, llama-index)
 - [x] Validate error handling and edge cases
-- [ ] Create API usage examples and curl commands
+- [x] Create API usage examples and curl commands
 
 ---
 
@@ -110,7 +110,7 @@ This project leverages gollama.cpp's pure Go bindings (no CGO), automatic librar
 - [x] CLI flags for common settings
 - [x] Configuration validation on startup
 - [x] Default configuration with sane defaults
-- [ ] Per-model parameter overrides
+- [x] Per-model parameter overrides
 
 ### 3.2 Model Discovery & Management
 
@@ -119,13 +119,13 @@ This project leverages gollama.cpp's pure Go bindings (no CGO), automatic librar
 - [x] Create model registry with metadata caching
 - [x] Support model aliases (for example, `"default"` → actual model path)
 - [ ] Auto-download models from Hugging Face (optional)
-- [ ] Model preload on startup option
+- [x] Model preload on startup option
 
 ### 3.3 Logging & Observability
 
 - [x] Structured logging with context
 - [x] Debug logging mode flag
-- [ ] Request/response logging options (can be expensive)
+- [x] Request/response logging options (can be expensive)
 - [ ] Performance metrics logging (tokens/sec, latency)
 - [ ] Error and warning aggregation
 - [ ] Prometheus metrics export endpoint (optional Phase 3.5+)

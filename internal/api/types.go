@@ -111,18 +111,23 @@ type EmbeddingRequest struct {
 	// Input may be a single string or an array of strings.
 	// After decoding it is always stored as a slice.
 	Input []string `json:"-"`
+	// Dimensions optionally requests the output embedding to be reduced to the
+	// given number of dimensions. Supported only when the backend implements it.
+	Dimensions *int `json:"-"`
 }
 
 // UnmarshalJSON handles both string and []string values for the input field.
 func (r *EmbeddingRequest) UnmarshalJSON(data []byte) error {
 	var raw struct {
-		Model string          `json:"model"`
-		Input json.RawMessage `json:"input"`
+		Model      string          `json:"model"`
+		Input      json.RawMessage `json:"input"`
+		Dimensions *int            `json:"dimensions"`
 	}
 	if err := json.Unmarshal(data, &raw); err != nil {
 		return err
 	}
 	r.Model = raw.Model
+	r.Dimensions = raw.Dimensions
 	if len(raw.Input) == 0 {
 		return nil
 	}

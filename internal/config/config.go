@@ -14,6 +14,19 @@ import (
 	"time"
 )
 
+// ModelParams holds inference parameter overrides for a specific model.
+// Any field left at its zero value is ignored; the request or global default is used.
+type ModelParams struct {
+	// Temperature overrides the sampling temperature (range 0.0–2.0). Nil = no override.
+	Temperature *float64 `json:"temperature,omitempty"`
+	// TopP overrides nucleus sampling probability (range 0.0–1.0). Nil = no override.
+	TopP *float64 `json:"top_p,omitempty"`
+	// MaxTokens overrides the maximum number of generated tokens. Nil = no override.
+	MaxTokens *int `json:"max_tokens,omitempty"`
+	// Stop overrides the stop sequences. Nil = no override.
+	Stop []string `json:"stop,omitempty"`
+}
+
 // Config holds the complete runtime configuration for packllama.
 type Config struct {
 	// Server settings.
@@ -25,12 +38,19 @@ type Config struct {
 	AllowedOrigins []string `json:"allowed_origins"`
 
 	// Logging.
-	LogLevel  string `json:"log_level"`
-	LogFormat string `json:"log_format"` // "text" or "json"
+	LogLevel    string `json:"log_level"`
+	LogFormat   string `json:"log_format"`    // "text" or "json"
+	LogRequests bool   `json:"log_requests"`  // log request body (verbose)
+	LogResponses bool  `json:"log_responses"` // log response body (verbose)
 
 	// Inference.
 	ModelsDir    string `json:"models_dir"`
 	DefaultModel string `json:"default_model"`
+	// PreloadModels lists model IDs to load into the inference backend at startup.
+	PreloadModels []string `json:"preload_models,omitempty"`
+	// ModelOverrides maps model IDs to parameter overrides that supersede global
+	// defaults when that model is used for inference.
+	ModelOverrides map[string]ModelParams `json:"model_overrides,omitempty"`
 
 	// Behaviour.
 	DisableUI bool `json:"disable_ui"`
@@ -111,11 +131,20 @@ func (c *Config) ApplyEnv() {
 	if v := os.Getenv("PACKLLAMA_LOG_FORMAT"); v != "" {
 		c.LogFormat = v
 	}
+	if v := os.Getenv("PACKLLAMA_LOG_REQUESTS"); v != "" {
+		c.LogRequests = isTruthy(v)
+	}
+	if v := os.Getenv("PACKLLAMA_LOG_RESPONSES"); v != "" {
+		c.LogResponses = isTruthy(v)
+	}
 	if v := os.Getenv("PACKLLAMA_MODELS_DIR"); v != "" {
 		c.ModelsDir = v
 	}
 	if v := os.Getenv("PACKLLAMA_DEFAULT_MODEL"); v != "" {
 		c.DefaultModel = v
+	}
+	if v := os.Getenv("PACKLLAMA_PRELOAD_MODELS"); v != "" {
+		c.PreloadModels = splitComma(v)
 	}
 	if v := os.Getenv("PACKLLAMA_DISABLE_UI"); v != "" {
 		c.DisableUI = isTruthy(v)
