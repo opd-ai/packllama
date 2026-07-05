@@ -136,6 +136,7 @@ Key options:
 | `--port` | `PACKLLAMA_PORT` | `8080` | Listen port |
 | `--models-dir` | `PACKLLAMA_MODELS_DIR` | _(empty)_ | Directory of `.gguf` files |
 | `--default-model` | `PACKLLAMA_DEFAULT_MODEL` | _(empty)_ | Model loaded on startup |
+| `--download-models` | `PACKLLAMA_MODEL_DOWNLOADS` | _(empty)_ | Comma-separated Hugging Face refs (`owner/repo/path.gguf`) auto-downloaded into `models_dir` |
 | `--log-level` | `PACKLLAMA_LOG_LEVEL` | `info` | `debug/info/warn/error` |
 | `--log-format` | `PACKLLAMA_LOG_FORMAT` | `text` | `text` or `json` |
 | `--no-ui` | `PACKLLAMA_DISABLE_UI` | `false` | API-only mode |

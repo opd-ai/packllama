@@ -182,6 +182,7 @@ func TestApplyEnv_NewFields(t *testing.T) {
 	t.Setenv("PACKLLAMA_LOG_REQUESTS", "true")
 	t.Setenv("PACKLLAMA_LOG_RESPONSES", "1")
 	t.Setenv("PACKLLAMA_PRELOAD_MODELS", "llama-7b, codellama-13b")
+	t.Setenv("PACKLLAMA_MODEL_DOWNLOADS", "org/repo/model.gguf")
 
 	c := Default()
 	c.ApplyEnv()
@@ -194,6 +195,9 @@ func TestApplyEnv_NewFields(t *testing.T) {
 	}
 	if len(c.PreloadModels) != 2 {
 		t.Errorf("expected 2 preload models, got %v", c.PreloadModels)
+	}
+	if len(c.ModelDownloads) != 1 || c.ModelDownloads[0] != "org/repo/model.gguf" {
+		t.Errorf("expected one model download ref, got %v", c.ModelDownloads)
 	}
 }
 
