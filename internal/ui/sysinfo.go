@@ -162,7 +162,7 @@ func readProcStat() (idle, total uint64, err error) {
 			break
 		}
 		var vals [10]uint64
-		for i := 1; i < len(fields) && i <= 10; i++ {
+		for i := 1; i < len(fields) && i < 11; i++ {
 			vals[i-1], _ = strconv.ParseUint(fields[i], 10, 64)
 			total += vals[i-1]
 		}

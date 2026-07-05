@@ -43,10 +43,12 @@ func NewSettingsPanel(prefs UserPreferences, theme Theme) *SettingsPanel {
 
 // buildWidgets constructs and wires all sub-widgets.
 func (sp *SettingsPanel) buildWidgets(t Theme) {
-	sp.themeDrop = NewDropdown([]string{"dark", "light"}, t)
+	// Put the current theme option first so it appears pre-selected.
+	themes := []string{"dark", "light"}
 	if sp.prefs.ThemeName == "light" {
-		sp.themeDrop.SetOptions([]string{"dark", "light"})
+		themes = []string{"light", "dark"}
 	}
+	sp.themeDrop = NewDropdown(themes, t)
 	sp.fontSlider = NewSlider(0.5, 3.0, sp.prefs.FontScale, t)
 	sp.modelInput = NewTextInput("default model", t)
 	sp.modelInput.SetValue(sp.prefs.DefaultModel)
