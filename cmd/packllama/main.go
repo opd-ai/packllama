@@ -16,6 +16,8 @@ import (
 	"github.com/opd-ai/packllama/internal/service"
 )
 
+var downloadHuggingFaceModel = modelstore.DownloadHuggingFaceModel
+
 func main() {
 	if err := run(); err != nil {
 		slog.Error("server error", "error", err)
@@ -54,14 +56,31 @@ func buildService(cfg config.Config, logger *slog.Logger) service.InferenceServi
 	if cfg.ModelsDir == "" {
 		return nil
 	}
+	autoDownloadModels(cfg, logger)
 	registry := modelstore.New()
 	if err := registry.Scan(cfg.ModelsDir, false); err != nil {
 		logger.Warn("model discovery failed", "dir", cfg.ModelsDir, "error", err)
 	}
-	if cfg.DefaultModel != "" && !registry.AddAlias("default", cfg.DefaultModel) {
-		logger.Warn("default model not found during discovery", "model", cfg.DefaultModel, "dir", cfg.ModelsDir)
-	}
+	addDefaultAlias(registry, cfg, logger)
 	return service.NewRegistryService(registry)
+}
+
+func autoDownloadModels(cfg config.Config, logger *slog.Logger) {
+	for _, ref := range cfg.ModelDownloads {
+		if _, err := downloadHuggingFaceModel(context.Background(), cfg.ModelsDir, ref); err != nil {
+			logger.Warn("model auto-download failed", "ref", ref, "error", err)
+		}
+	}
+}
+
+func addDefaultAlias(registry *modelstore.Registry, cfg config.Config, logger *slog.Logger) {
+	if cfg.DefaultModel == "" {
+		return
+	}
+	if registry.AddAlias("default", cfg.DefaultModel) {
+		return
+	}
+	logger.Warn("default model not found during discovery", "model", cfg.DefaultModel, "dir", cfg.ModelsDir)
 }
 
 // loadConfig builds a Config by merging defaults, optional file, env vars, and flags.
@@ -79,6 +98,7 @@ func loadConfig() (config.Config, error) {
 		logFormat       string
 		modelsDir       string
 		defaultModel    string
+		modelDownloads  string
 		disableUI       bool
 		shutdownTimeout time.Duration
 	)
@@ -90,6 +110,7 @@ func loadConfig() (config.Config, error) {
 	flag.StringVar(&logFormat, "log-format", cfg.LogFormat, "log format: text, json")
 	flag.StringVar(&modelsDir, "models-dir", cfg.ModelsDir, "directory containing .gguf model files")
 	flag.StringVar(&defaultModel, "default-model", cfg.DefaultModel, "default model to load on startup")
+	flag.StringVar(&modelDownloads, "download-models", "", "comma-separated Hugging Face refs (owner/repo/path.gguf or full URLs) to download at startup")
 	flag.BoolVar(&disableUI, "no-ui", cfg.DisableUI, "run in API-only mode (no desktop UI)")
 	flag.DurationVar(&shutdownTimeout, "shutdown-timeout", cfg.ShutdownTimeout, "graceful shutdown timeout")
 	flag.Parse()
@@ -117,6 +138,8 @@ func loadConfig() (config.Config, error) {
 			cfg.ModelsDir = modelsDir
 		case "default-model":
 			cfg.DefaultModel = defaultModel
+		case "download-models":
+			cfg.ModelDownloads = parseCommaSeparated(modelDownloads)
 		case "no-ui":
 			cfg.DisableUI = disableUI
 		case "shutdown-timeout":
@@ -125,6 +148,17 @@ func loadConfig() (config.Config, error) {
 	})
 
 	return cfg, cfg.Validate()
+}
+
+func parseCommaSeparated(s string) []string {
+	parts := strings.Split(s, ",")
+	out := make([]string, 0, len(parts))
+	for _, p := range parts {
+		if t := strings.TrimSpace(p); t != "" {
+			out = append(out, t)
+		}
+	}
+	return out
 }
 
 func newLogger(cfg config.Config) *slog.Logger {

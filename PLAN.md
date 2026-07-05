@@ -118,7 +118,7 @@ This project leverages gollama.cpp's pure Go bindings (no CGO), automatic librar
 - [x] Implement model file detection (`*.gguf`)
 - [x] Create model registry with metadata caching
 - [x] Support model aliases (for example, `"default"` → actual model path)
-- [ ] Auto-download models from Hugging Face (optional)
+- [x] Auto-download models from Hugging Face (optional)
 - [x] Model preload on startup option
 
 ### 3.3 Logging & Observability

@@ -1,9 +1,14 @@
 package modelstore
 
 import (
+	"context"
 	"errors"
+	"fmt"
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -270,5 +275,52 @@ func TestRemoveModel_NotFound(t *testing.T) {
 	r := New()
 	if err := r.RemoveModel("missing"); !errors.Is(err, ErrModelNotFound) {
 		t.Fatalf("expected ErrModelNotFound, got %v", err)
+	}
+}
+
+func TestDownloadHuggingFaceModel_FromURL(t *testing.T) {
+	modelData := []byte("gguf-bytes")
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/my.gguf" {
+			http.NotFound(w, r)
+			return
+		}
+		w.Header().Set("Content-Length", fmt.Sprintf("%d", len(modelData)))
+		_, _ = w.Write(modelData)
+	}))
+	defer server.Close()
+
+	dir := t.TempDir()
+	path, err := DownloadHuggingFaceModel(context.Background(), dir, server.URL+"/my.gguf")
+	if err != nil {
+		t.Fatalf("DownloadHuggingFaceModel: %v", err)
+	}
+	content, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatalf("ReadFile: %v", err)
+	}
+	if string(content) != string(modelData) {
+		t.Fatalf("unexpected content %q", string(content))
+	}
+}
+
+func TestDownloadHuggingFaceModel_InvalidRef(t *testing.T) {
+	dir := t.TempDir()
+	_, err := DownloadHuggingFaceModel(context.Background(), dir, "org/repo/model.bin")
+	if !errors.Is(err, errInvalidHuggingFaceRef) {
+		t.Fatalf("expected errInvalidHuggingFaceRef, got %v", err)
+	}
+}
+
+func TestResolveHuggingFaceRef_Shorthand(t *testing.T) {
+	url, fileName, err := resolveHuggingFaceRef("owner/repo/models/model.gguf")
+	if err != nil {
+		t.Fatalf("resolveHuggingFaceRef: %v", err)
+	}
+	if fileName != "model.gguf" {
+		t.Fatalf("expected model.gguf, got %q", fileName)
+	}
+	if !strings.Contains(url, "https://huggingface.co/owner/repo/resolve/main/models/model.gguf") {
+		t.Fatalf("unexpected URL %q", url)
 	}
 }

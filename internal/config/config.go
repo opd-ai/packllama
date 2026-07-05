@@ -38,14 +38,16 @@ type Config struct {
 	AllowedOrigins []string `json:"allowed_origins"`
 
 	// Logging.
-	LogLevel    string `json:"log_level"`
-	LogFormat   string `json:"log_format"`    // "text" or "json"
-	LogRequests bool   `json:"log_requests"`  // log request body (verbose)
-	LogResponses bool  `json:"log_responses"` // log response body (verbose)
+	LogLevel     string `json:"log_level"`
+	LogFormat    string `json:"log_format"`    // "text" or "json"
+	LogRequests  bool   `json:"log_requests"`  // log request body (verbose)
+	LogResponses bool   `json:"log_responses"` // log response body (verbose)
 
 	// Inference.
 	ModelsDir    string `json:"models_dir"`
 	DefaultModel string `json:"default_model"`
+	// ModelDownloads lists Hugging Face model refs to download into ModelsDir at startup.
+	ModelDownloads []string `json:"model_downloads,omitempty"`
 	// PreloadModels lists model IDs to load into the inference backend at startup.
 	PreloadModels []string `json:"preload_models,omitempty"`
 	// ModelOverrides maps model IDs to parameter overrides that supersede global
@@ -144,6 +146,7 @@ func (c *Config) envBindings() []envBinding {
 		{"PACKLLAMA_LOG_RESPONSES", func(c *Config, v string) { c.LogResponses = isTruthy(v) }},
 		{"PACKLLAMA_MODELS_DIR", func(c *Config, v string) { c.ModelsDir = v }},
 		{"PACKLLAMA_DEFAULT_MODEL", func(c *Config, v string) { c.DefaultModel = v }},
+		{"PACKLLAMA_MODEL_DOWNLOADS", func(c *Config, v string) { c.ModelDownloads = splitComma(v) }},
 		{"PACKLLAMA_PRELOAD_MODELS", func(c *Config, v string) { c.PreloadModels = splitComma(v) }},
 		{"PACKLLAMA_DISABLE_UI", func(c *Config, v string) { c.DisableUI = isTruthy(v) }},
 		{"PACKLLAMA_ENABLE_METRICS", func(c *Config, v string) { c.EnableMetrics = isTruthy(v) }},
