@@ -165,3 +165,17 @@ type ModelListResponse struct {
 	Object string        `json:"object"`
 	Data   []ModelObject `json:"data"`
 }
+
+// LoadModelRequest is the request body for POST /v1/models.
+type LoadModelRequest struct {
+	Path    string `json:"path"`
+	ID      string `json:"id,omitempty"`
+	OwnedBy string `json:"owned_by,omitempty"`
+}
+
+// DeleteModelResponse is the response body for DELETE /v1/models/{model_id}.
+type DeleteModelResponse struct {
+	ID      string `json:"id"`
+	Object  string `json:"object"`
+	Deleted bool   `json:"deleted"`
+}

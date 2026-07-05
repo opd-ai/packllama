@@ -80,8 +80,8 @@ This project leverages gollama.cpp's pure Go bindings (no CGO), automatic librar
 - [x] Implement `/v1/models` GET (list available models)
 - [x] Implement `/v1/models/{model_id}` GET (model info)
 - [x] Add model metadata (context length, parameters, quantization)
-- [ ] Implement `POST /v1/models` to load new models
-- [ ] Implement `DELETE /v1/models/{model_id}` to unload models
+- [x] Implement `POST /v1/models` to load new models
+- [x] Implement `DELETE /v1/models/{model_id}` to unload models
 - [x] Add model discovery from configurable directories
 
 ### 2.4 Embeddings Support

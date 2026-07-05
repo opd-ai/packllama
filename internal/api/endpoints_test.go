@@ -24,6 +24,11 @@ type stubInference struct {
 	textErr    error
 	listErr    error
 	embedErr   error
+	loadErr    error
+	unloadErr  error
+	loadModel  service.ModelInfo
+	lastLoad   service.ModelLoadRequest
+	lastUnload string
 }
 
 func (s *stubInference) ChatComplete(_ context.Context, _ service.ChatRequest) (<-chan service.ChatChunk, error) {
@@ -56,6 +61,16 @@ func (s *stubInference) Embed(_ context.Context, _ service.EmbeddingRequest) ([]
 
 func (s *stubInference) ListModels(_ context.Context) ([]service.ModelInfo, error) {
 	return s.models, s.listErr
+}
+
+func (s *stubInference) LoadModel(_ context.Context, req service.ModelLoadRequest) (service.ModelInfo, error) {
+	s.lastLoad = req
+	return s.loadModel, s.loadErr
+}
+
+func (s *stubInference) UnloadModel(_ context.Context, id string) error {
+	s.lastUnload = id
+	return s.unloadErr
 }
 
 func newTestHandler(svc service.InferenceService) http.Handler {
@@ -316,6 +331,82 @@ func TestGetModel_NotFound(t *testing.T) {
 	recorder := httptest.NewRecorder()
 	newTestHandler(&stubInference{}).ServeHTTP(recorder,
 		httptest.NewRequest(http.MethodGet, "/v1/models/nonexistent", nil))
+
+	if recorder.Code != http.StatusNotFound {
+		t.Fatalf("expected 404, got %d", recorder.Code)
+	}
+}
+
+func TestLoadModel(t *testing.T) {
+	svc := &stubInference{
+		loadModel: service.ModelInfo{ID: "new-model", OwnedBy: "local", Created: 1_000_000},
+	}
+	body := `{"path":"/models/new-model.gguf"}`
+
+	recorder := httptest.NewRecorder()
+	newTestHandler(svc).ServeHTTP(recorder,
+		httptest.NewRequest(http.MethodPost, "/v1/models", strings.NewReader(body)))
+
+	if recorder.Code != http.StatusCreated {
+		t.Fatalf("expected 201, got %d: %s", recorder.Code, recorder.Body.String())
+	}
+	if svc.lastLoad.Path != "/models/new-model.gguf" {
+		t.Fatalf("expected load path to be passed through, got %q", svc.lastLoad.Path)
+	}
+}
+
+func TestLoadModel_ValidationError(t *testing.T) {
+	svc := &stubInference{loadErr: service.ErrModelPathRequired}
+	recorder := httptest.NewRecorder()
+	newTestHandler(svc).ServeHTTP(recorder,
+		httptest.NewRequest(http.MethodPost, "/v1/models", strings.NewReader(`{"path":""}`)))
+
+	if recorder.Code != http.StatusBadRequest {
+		t.Fatalf("expected 400, got %d", recorder.Code)
+	}
+}
+
+func TestLoadModel_InvalidPath(t *testing.T) {
+	svc := &stubInference{loadErr: service.ErrInvalidModelPath}
+	recorder := httptest.NewRecorder()
+	newTestHandler(svc).ServeHTTP(recorder,
+		httptest.NewRequest(http.MethodPost, "/v1/models", strings.NewReader(`{"path":"missing.gguf"}`)))
+
+	if recorder.Code != http.StatusBadRequest {
+		t.Fatalf("expected 400, got %d", recorder.Code)
+	}
+}
+
+func TestLoadModel_Conflict(t *testing.T) {
+	svc := &stubInference{loadErr: service.ErrModelAlreadyExists}
+	recorder := httptest.NewRecorder()
+	newTestHandler(svc).ServeHTTP(recorder,
+		httptest.NewRequest(http.MethodPost, "/v1/models", strings.NewReader(`{"path":"/models/existing.gguf"}`)))
+
+	if recorder.Code != http.StatusConflict {
+		t.Fatalf("expected 409, got %d", recorder.Code)
+	}
+}
+
+func TestUnloadModel(t *testing.T) {
+	svc := &stubInference{}
+	recorder := httptest.NewRecorder()
+	newTestHandler(svc).ServeHTTP(recorder,
+		httptest.NewRequest(http.MethodDelete, "/v1/models/model-a", nil))
+
+	if recorder.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d: %s", recorder.Code, recorder.Body.String())
+	}
+	if svc.lastUnload != "model-a" {
+		t.Fatalf("expected model-a unload, got %q", svc.lastUnload)
+	}
+}
+
+func TestUnloadModel_NotFound(t *testing.T) {
+	svc := &stubInference{unloadErr: service.ErrModelNotFound}
+	recorder := httptest.NewRecorder()
+	newTestHandler(svc).ServeHTTP(recorder,
+		httptest.NewRequest(http.MethodDelete, "/v1/models/missing", nil))
 
 	if recorder.Code != http.StatusNotFound {
 		t.Fatalf("expected 404, got %d", recorder.Code)

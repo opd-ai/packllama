@@ -138,6 +138,23 @@ curl -s http://127.0.0.1:8080/v1/models
 curl -s http://127.0.0.1:8080/v1/models/llama-3-8b-instruct
 ```
 
+### Load a model
+
+```bash
+curl -s http://127.0.0.1:8080/v1/models \
+  -H "Content-Type: application/json" \
+  -d '{
+    "path": "/opt/models/llama-3-8b-instruct.gguf",
+    "id": "llama-3-8b-instruct"
+  }'
+```
+
+### Unload a model
+
+```bash
+curl -s -X DELETE http://127.0.0.1:8080/v1/models/llama-3-8b-instruct
+```
+
 ---
 
 ## Embeddings (`/v1/embeddings`)
