@@ -8,6 +8,9 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
+// paramPresetNames lists the preset names used by ParamPanel in display order.
+var paramPresetNames = [3]string{"creative", "balanced", "precise"}
+
 // ParamPanel is a composite widget for viewing and editing InferenceParams.
 // It provides model selection, basic sliders, preset buttons, an advanced-
 // parameters toggle, real-time validation, and save/load support.
@@ -56,10 +59,8 @@ func (pp *ParamPanel) buildWidgets(t Theme) {
 	pp.maxTokInput.SetValue(strconv.Itoa(pp.params.MaxTokens))
 	pp.ctxInput.SetValue(strconv.Itoa(pp.params.ContextLen))
 	pp.topKInput.SetValue(strconv.Itoa(pp.params.TopK))
-	presets := []string{"creative", "balanced", "precise"}
-	for i, name := range presets {
-		n := name
-		pp.presetBtns[i] = NewButton(n, t, func() { pp.ApplyPreset(n) })
+	for i, name := range paramPresetNames {
+		pp.presetBtns[i] = NewButton(name, t, func() { pp.ApplyPreset(name) })
 	}
 	pp.wireCallbacks()
 }
@@ -186,10 +187,9 @@ func (pp *ParamPanel) layoutWidgets() {
 	pp.setRowBounds(pp.tempSlider, lx, 1, rw, rh)
 	pp.setRowBounds(pp.topPSlider, lx, 2, rw, rh)
 	// position preset buttons on row 3
-	presetNames := []string{"creative", "balanced", "precise"}
 	x := lx
 	y := pp.bounds.Min.Y + pp.theme.Padding + 3*rh
-	for i, name := range presetNames {
+	for i, name := range paramPresetNames {
 		w := len(name)*CharWidth + pp.theme.Padding*2
 		pp.presetBtns[i].SetBounds(image.Rect(x, y, x+w, y+rh-pp.theme.Margin))
 		x += w + pp.theme.Margin
