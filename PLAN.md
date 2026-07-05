@@ -94,8 +94,8 @@ This project leverages gollama.cpp's pure Go bindings (no CGO), automatic librar
 ### 2.5 API Testing
 
 - [x] Create test suite for all endpoints
-- [ ] Test with OpenAI Python SDK (`openai` library)
-- [ ] Test with other LLM frameworks (langchain, llama-index)
+- [x] Test with OpenAI Python SDK (`openai` library)
+- [x] Test with other LLM frameworks (langchain, llama-index)
 - [x] Validate error handling and edge cases
 - [x] Create API usage examples and curl commands
 
