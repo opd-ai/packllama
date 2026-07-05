@@ -12,6 +12,8 @@ import (
 	"github.com/opd-ai/packllama/internal/service"
 )
 
+const pythonTestTimeout = 20 * time.Second
+
 func TestPythonSDK_OpenAIChatCompatibility(t *testing.T) {
 	python := requirePythonAndModules(t, "openai")
 
@@ -113,7 +115,7 @@ func requirePythonAndModules(t *testing.T, modules ...string) string {
 
 func runPythonCode(t *testing.T, python string, code string, extraEnv map[string]string) {
 	t.Helper()
-	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), pythonTestTimeout)
 	defer cancel()
 
 	cmd := exec.CommandContext(ctx, python, "-c", code)
