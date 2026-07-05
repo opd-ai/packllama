@@ -361,8 +361,8 @@ func TestLoadModel_ValidationError(t *testing.T) {
 	newTestHandler(svc).ServeHTTP(recorder,
 		httptest.NewRequest(http.MethodPost, "/v1/models", strings.NewReader(`{"path":""}`)))
 
-	if recorder.Code != http.StatusUnprocessableEntity {
-		t.Fatalf("expected 422, got %d", recorder.Code)
+	if recorder.Code != http.StatusBadRequest {
+		t.Fatalf("expected 400, got %d", recorder.Code)
 	}
 }
 

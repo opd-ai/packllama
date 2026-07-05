@@ -117,14 +117,17 @@ func TestRegistryService_NonExistentDir(t *testing.T) {
 
 func TestRegistryService_LoadModel(t *testing.T) {
 	dir := t.TempDir()
+	reg := modelstore.New()
+	if err := reg.Scan(dir, false); err != nil {
+		t.Fatalf("Scan: %v", err)
+	}
+	svc := service.NewRegistryService(reg)
 	path := filepath.Join(dir, "loaded.gguf")
 	f, err := os.Create(path)
 	if err != nil {
 		t.Fatalf("create: %v", err)
 	}
 	f.Close()
-
-	svc := service.NewRegistryService(modelstore.New())
 	model, err := svc.LoadModel(context.Background(), service.ModelLoadRequest{Path: path})
 	if err != nil {
 		t.Fatalf("LoadModel: %v", err)
@@ -146,14 +149,17 @@ func TestRegistryService_LoadModel_Errors(t *testing.T) {
 
 func TestRegistryService_UnloadModel(t *testing.T) {
 	dir := t.TempDir()
+	reg := modelstore.New()
+	if err := reg.Scan(dir, false); err != nil {
+		t.Fatalf("Scan: %v", err)
+	}
+	svc := service.NewRegistryService(reg)
 	path := filepath.Join(dir, "loaded.gguf")
 	f, err := os.Create(path)
 	if err != nil {
 		t.Fatalf("create: %v", err)
 	}
 	f.Close()
-
-	svc := service.NewRegistryService(modelstore.New())
 	if _, err := svc.LoadModel(context.Background(), service.ModelLoadRequest{Path: path}); err != nil {
 		t.Fatalf("LoadModel: %v", err)
 	}

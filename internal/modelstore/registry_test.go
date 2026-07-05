@@ -169,10 +169,12 @@ func TestResolve_NotFound(t *testing.T) {
 
 func TestAddModelFile(t *testing.T) {
 	dir := t.TempDir()
+	r := New()
+	if err := r.Scan(dir, false); err != nil {
+		t.Fatalf("Scan: %v", err)
+	}
 	modelPath := filepath.Join(dir, "new.gguf")
 	makeGGUF(t, modelPath)
-
-	r := New()
 	entry, err := r.AddModelFile(modelPath, "", "")
 	if err != nil {
 		t.Fatalf("AddModelFile: %v", err)
@@ -187,10 +189,12 @@ func TestAddModelFile(t *testing.T) {
 
 func TestAddModelFile_DuplicateID(t *testing.T) {
 	dir := t.TempDir()
+	r := New()
+	if err := r.Scan(dir, false); err != nil {
+		t.Fatalf("Scan: %v", err)
+	}
 	makeGGUF(t, filepath.Join(dir, "a.gguf"))
 	makeGGUF(t, filepath.Join(dir, "b.gguf"))
-
-	r := New()
 	if _, err := r.AddModelFile(filepath.Join(dir, "a.gguf"), "dup", ""); err != nil {
 		t.Fatalf("first AddModelFile: %v", err)
 	}
@@ -206,6 +210,9 @@ func TestAddModelFile_InvalidExtension(t *testing.T) {
 		t.Fatalf("write: %v", err)
 	}
 	r := New()
+	if err := r.Scan(dir, false); err != nil {
+		t.Fatalf("Scan: %v", err)
+	}
 	if _, err := r.AddModelFile(path, "", ""); !errors.Is(err, ErrInvalidModelFile) {
 		t.Fatalf("expected ErrInvalidModelFile, got %v", err)
 	}
@@ -213,16 +220,33 @@ func TestAddModelFile_InvalidExtension(t *testing.T) {
 
 func TestAddModelFile_RejectsRelativePath(t *testing.T) {
 	dir := t.TempDir()
+	r := New()
+	if err := r.Scan(dir, false); err != nil {
+		t.Fatalf("Scan: %v", err)
+	}
 	modelPath := filepath.Join(dir, "relative.gguf")
 	makeGGUF(t, modelPath)
 	rel, err := filepath.Rel(dir, modelPath)
 	if err != nil {
 		t.Fatalf("Rel: %v", err)
 	}
-
-	r := New()
 	if _, err := r.AddModelFile(rel, "", ""); !errors.Is(err, ErrInvalidModelFile) {
 		t.Fatalf("expected ErrInvalidModelFile, got %v", err)
+	}
+}
+
+func TestAddModelFile_RejectsPathOutsideScannedRoots(t *testing.T) {
+	root := t.TempDir()
+	other := t.TempDir()
+	modelPath := filepath.Join(other, "outside.gguf")
+	makeGGUF(t, modelPath)
+
+	r := New()
+	if err := r.Scan(root, false); err != nil {
+		t.Fatalf("Scan: %v", err)
+	}
+	if _, err := r.AddModelFile(modelPath, "", ""); !errors.Is(err, ErrInvalidModelFile) {
+		t.Fatalf("expected ErrInvalidModelFile for path outside root, got %v", err)
 	}
 }
 

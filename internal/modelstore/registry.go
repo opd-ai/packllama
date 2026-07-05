@@ -42,6 +42,7 @@ type Registry struct {
 	mu      sync.RWMutex
 	entries []Entry
 	aliases map[string]string // alias → model ID
+	roots   []string
 }
 
 var (
@@ -67,7 +68,11 @@ func (r *Registry) Scan(dir string, recursive bool) error {
 	if dir == "" {
 		return nil
 	}
-	var entries []Entry
+	absDir, err := filepath.Abs(dir)
+	if err != nil {
+		return fmt.Errorf("abs dir %s: %w", dir, err)
+	}
+	entries := make([]Entry, 0)
 	walkFn := func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
@@ -99,13 +104,18 @@ func (r *Registry) Scan(dir string, recursive bool) error {
 		})
 		return nil
 	}
-	if err := filepath.WalkDir(dir, walkFn); err != nil {
+	if err := filepath.WalkDir(absDir, walkFn); err != nil {
 		if os.IsNotExist(err) {
+			r.mu.Lock()
+			r.roots = appendUniqueRoot(r.roots, absDir)
+			r.entries = entries
+			r.mu.Unlock()
 			return nil // dir not yet created is not an error
 		}
-		return fmt.Errorf("scan %s: %w", dir, err)
+		return fmt.Errorf("scan %s: %w", absDir, err)
 	}
 	r.mu.Lock()
+	r.roots = appendUniqueRoot(r.roots, absDir)
 	r.entries = entries
 	r.mu.Unlock()
 	return nil
@@ -171,27 +181,32 @@ func (r *Registry) AddModelFile(path, id, ownedBy string) (Entry, error) {
 	if cleanPath == "." || !filepath.IsAbs(cleanPath) || !strings.EqualFold(filepath.Ext(cleanPath), ".gguf") {
 		return Entry{}, ErrInvalidModelFile
 	}
+	r.mu.RLock()
+	checkedPath, allowed := canonicalPathWithinRoots(cleanPath, r.roots)
+	r.mu.RUnlock()
+	if !allowed {
+		return Entry{}, ErrInvalidModelFile
+	}
 
-	info, err := os.Stat(cleanPath)
+	info, err := os.Stat(checkedPath)
 	if err != nil {
-		return Entry{}, fmt.Errorf("stat %s: %w", cleanPath, err)
+		return Entry{}, fmt.Errorf("stat %s: %w", checkedPath, err)
 	}
 	if !info.Mode().IsRegular() {
 		return Entry{}, ErrInvalidModelFile
 	}
-	abs, err := filepath.Abs(cleanPath)
+	abs, err := filepath.Abs(checkedPath)
 	if err != nil {
 		return Entry{}, fmt.Errorf("abs path %s: %w", cleanPath, err)
 	}
+	r.mu.Lock()
+	defer r.mu.Unlock()
 	if id == "" {
-		id = strings.TrimSuffix(filepath.Base(path), filepath.Ext(path))
+		id = strings.TrimSuffix(filepath.Base(checkedPath), filepath.Ext(checkedPath))
 	}
 	if ownedBy == "" {
 		ownedBy = "local"
 	}
-
-	r.mu.Lock()
-	defer r.mu.Unlock()
 	for _, e := range r.entries {
 		if e.ID == id {
 			return Entry{}, ErrModelAlreadyExists
@@ -218,7 +233,7 @@ func (r *Registry) RemoveModel(id string) error {
 		if e.ID == id {
 			r.entries = append(r.entries[:i], r.entries[i+1:]...)
 			for alias, target := range r.aliases {
-				if alias == id || target == id {
+				if target == id {
 					delete(r.aliases, alias)
 				}
 			}
@@ -226,4 +241,27 @@ func (r *Registry) RemoveModel(id string) error {
 		}
 	}
 	return ErrModelNotFound
+}
+
+func appendUniqueRoot(roots []string, root string) []string {
+	for _, existing := range roots {
+		if existing == root {
+			return roots
+		}
+	}
+	return append(roots, root)
+}
+
+func canonicalPathWithinRoots(path string, roots []string) (string, bool) {
+	for _, root := range roots {
+		cleanRoot := filepath.Clean(root)
+		if path == cleanRoot {
+			continue
+		}
+		prefix := cleanRoot + string(filepath.Separator)
+		if strings.HasPrefix(path, prefix) {
+			return path, true
+		}
+	}
+	return "", false
 }

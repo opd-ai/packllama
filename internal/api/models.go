@@ -141,7 +141,7 @@ func handleUnloadModel(svc service.InferenceService) http.HandlerFunc {
 func writeModelError(w http.ResponseWriter, err error) {
 	switch {
 	case errors.Is(err, service.ErrModelPathRequired):
-		writeError(w, http.StatusUnprocessableEntity, err.Error())
+		writeError(w, http.StatusBadRequest, err.Error())
 	case errors.Is(err, service.ErrInvalidModelPath):
 		writeError(w, http.StatusBadRequest, err.Error())
 	case errors.Is(err, service.ErrModelAlreadyExists):
