@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io/fs"
 	"os"
 	"strings"
 
@@ -89,7 +90,7 @@ func (s *RegistryService) LoadModel(_ context.Context, req ModelLoadRequest) (Mo
 			return ModelInfo{}, ErrInvalidModelPath
 		case errors.Is(err, modelstore.ErrModelAlreadyExists):
 			return ModelInfo{}, ErrModelAlreadyExists
-		case os.IsNotExist(err):
+		case os.IsNotExist(err), errors.Is(err, fs.ErrNotExist):
 			return ModelInfo{}, ErrInvalidModelPath
 		default:
 			return ModelInfo{}, fmt.Errorf("load model: %w", err)

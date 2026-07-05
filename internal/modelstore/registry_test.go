@@ -211,6 +211,21 @@ func TestAddModelFile_InvalidExtension(t *testing.T) {
 	}
 }
 
+func TestAddModelFile_RejectsRelativePath(t *testing.T) {
+	dir := t.TempDir()
+	modelPath := filepath.Join(dir, "relative.gguf")
+	makeGGUF(t, modelPath)
+	rel, err := filepath.Rel(dir, modelPath)
+	if err != nil {
+		t.Fatalf("Rel: %v", err)
+	}
+
+	r := New()
+	if _, err := r.AddModelFile(rel, "", ""); !errors.Is(err, ErrInvalidModelFile) {
+		t.Fatalf("expected ErrInvalidModelFile, got %v", err)
+	}
+}
+
 func TestRemoveModel(t *testing.T) {
 	dir := t.TempDir()
 	makeGGUF(t, filepath.Join(dir, "a.gguf"))

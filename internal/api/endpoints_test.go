@@ -366,6 +366,17 @@ func TestLoadModel_ValidationError(t *testing.T) {
 	}
 }
 
+func TestLoadModel_InvalidPath(t *testing.T) {
+	svc := &stubInference{loadErr: service.ErrInvalidModelPath}
+	recorder := httptest.NewRecorder()
+	newTestHandler(svc).ServeHTTP(recorder,
+		httptest.NewRequest(http.MethodPost, "/v1/models", strings.NewReader(`{"path":"missing.gguf"}`)))
+
+	if recorder.Code != http.StatusBadRequest {
+		t.Fatalf("expected 400, got %d", recorder.Code)
+	}
+}
+
 func TestLoadModel_Conflict(t *testing.T) {
 	svc := &stubInference{loadErr: service.ErrModelAlreadyExists}
 	recorder := httptest.NewRecorder()

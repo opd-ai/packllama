@@ -167,17 +167,21 @@ func (r *Registry) Resolve(id string) (string, error) {
 // AddModelFile registers a single GGUF model file and returns the added entry.
 // If id is empty, it is derived from the file name. ownedBy defaults to "local".
 func (r *Registry) AddModelFile(path, id, ownedBy string) (Entry, error) {
-	if strings.TrimSpace(path) == "" || !strings.EqualFold(filepath.Ext(path), ".gguf") {
+	cleanPath := filepath.Clean(strings.TrimSpace(path))
+	if cleanPath == "." || !filepath.IsAbs(cleanPath) || !strings.EqualFold(filepath.Ext(cleanPath), ".gguf") {
 		return Entry{}, ErrInvalidModelFile
 	}
 
-	info, err := os.Stat(path)
+	info, err := os.Stat(cleanPath)
 	if err != nil {
-		return Entry{}, fmt.Errorf("stat %s: %w", path, err)
+		return Entry{}, fmt.Errorf("stat %s: %w", cleanPath, err)
 	}
-	abs, err := filepath.Abs(path)
+	if !info.Mode().IsRegular() {
+		return Entry{}, ErrInvalidModelFile
+	}
+	abs, err := filepath.Abs(cleanPath)
 	if err != nil {
-		return Entry{}, fmt.Errorf("abs path %s: %w", path, err)
+		return Entry{}, fmt.Errorf("abs path %s: %w", cleanPath, err)
 	}
 	if id == "" {
 		id = strings.TrimSuffix(filepath.Base(path), filepath.Ext(path))
