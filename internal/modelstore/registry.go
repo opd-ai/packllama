@@ -4,6 +4,7 @@
 package modelstore
 
 import (
+	"errors"
 	"fmt"
 	"io/fs"
 	"os"
@@ -42,6 +43,15 @@ type Registry struct {
 	entries []Entry
 	aliases map[string]string // alias → model ID
 }
+
+var (
+	// ErrInvalidModelFile is returned when a model path is empty or not a .gguf file.
+	ErrInvalidModelFile = errors.New("invalid model file")
+	// ErrModelAlreadyExists is returned when adding a model with a duplicate ID.
+	ErrModelAlreadyExists = errors.New("model already exists")
+	// ErrModelNotFound is returned when removing or resolving a missing model.
+	ErrModelNotFound = errors.New("model not found")
+)
 
 // New returns an empty Registry.
 func New() *Registry {
@@ -152,4 +162,64 @@ func (r *Registry) Resolve(id string) (string, error) {
 		return "", fmt.Errorf("model %q not found", id)
 	}
 	return e.Path, nil
+}
+
+// AddModelFile registers a single GGUF model file and returns the added entry.
+// If id is empty, it is derived from the file name. ownedBy defaults to "local".
+func (r *Registry) AddModelFile(path, id, ownedBy string) (Entry, error) {
+	if strings.TrimSpace(path) == "" || !strings.EqualFold(filepath.Ext(path), ".gguf") {
+		return Entry{}, ErrInvalidModelFile
+	}
+
+	info, err := os.Stat(path)
+	if err != nil {
+		return Entry{}, fmt.Errorf("stat %s: %w", path, err)
+	}
+	abs, err := filepath.Abs(path)
+	if err != nil {
+		return Entry{}, fmt.Errorf("abs path %s: %w", path, err)
+	}
+	if id == "" {
+		id = strings.TrimSuffix(filepath.Base(path), filepath.Ext(path))
+	}
+	if ownedBy == "" {
+		ownedBy = "local"
+	}
+
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	for _, e := range r.entries {
+		if e.ID == id {
+			return Entry{}, ErrModelAlreadyExists
+		}
+	}
+
+	entry := Entry{
+		ID:      id,
+		Path:    abs,
+		Size:    info.Size(),
+		ModTime: info.ModTime(),
+		OwnedBy: ownedBy,
+	}
+	r.entries = append(r.entries, entry)
+	return entry, nil
+}
+
+// RemoveModel unregisters a model by ID.
+func (r *Registry) RemoveModel(id string) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	for i, e := range r.entries {
+		if e.ID == id {
+			r.entries = append(r.entries[:i], r.entries[i+1:]...)
+			for alias, target := range r.aliases {
+				if alias == id || target == id {
+					delete(r.aliases, alias)
+				}
+			}
+			return nil
+		}
+	}
+	return ErrModelNotFound
 }

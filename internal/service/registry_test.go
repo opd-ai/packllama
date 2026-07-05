@@ -114,3 +114,53 @@ func TestRegistryService_NonExistentDir(t *testing.T) {
 		t.Fatalf("expected no models, got %d", len(models))
 	}
 }
+
+func TestRegistryService_LoadModel(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "loaded.gguf")
+	f, err := os.Create(path)
+	if err != nil {
+		t.Fatalf("create: %v", err)
+	}
+	f.Close()
+
+	svc := service.NewRegistryService(modelstore.New())
+	model, err := svc.LoadModel(context.Background(), service.ModelLoadRequest{Path: path})
+	if err != nil {
+		t.Fatalf("LoadModel: %v", err)
+	}
+	if model.ID != "loaded" {
+		t.Fatalf("expected loaded, got %q", model.ID)
+	}
+}
+
+func TestRegistryService_LoadModel_Errors(t *testing.T) {
+	svc := service.NewRegistryService(modelstore.New())
+	if _, err := svc.LoadModel(context.Background(), service.ModelLoadRequest{}); !errors.Is(err, service.ErrModelPathRequired) {
+		t.Fatalf("expected ErrModelPathRequired, got %v", err)
+	}
+	if _, err := svc.LoadModel(context.Background(), service.ModelLoadRequest{Path: "/missing.gguf"}); !errors.Is(err, service.ErrInvalidModelPath) {
+		t.Fatalf("expected ErrInvalidModelPath, got %v", err)
+	}
+}
+
+func TestRegistryService_UnloadModel(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "loaded.gguf")
+	f, err := os.Create(path)
+	if err != nil {
+		t.Fatalf("create: %v", err)
+	}
+	f.Close()
+
+	svc := service.NewRegistryService(modelstore.New())
+	if _, err := svc.LoadModel(context.Background(), service.ModelLoadRequest{Path: path}); err != nil {
+		t.Fatalf("LoadModel: %v", err)
+	}
+	if err := svc.UnloadModel(context.Background(), "loaded"); err != nil {
+		t.Fatalf("UnloadModel: %v", err)
+	}
+	if err := svc.UnloadModel(context.Background(), "loaded"); !errors.Is(err, service.ErrModelNotFound) {
+		t.Fatalf("expected ErrModelNotFound, got %v", err)
+	}
+}

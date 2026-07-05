@@ -1,6 +1,7 @@
 package modelstore
 
 import (
+	"errors"
 	"os"
 	"path/filepath"
 	"testing"
@@ -163,5 +164,72 @@ func TestResolve_NotFound(t *testing.T) {
 	r := New()
 	if _, err := r.Resolve("missing"); err == nil {
 		t.Error("expected error for missing model")
+	}
+}
+
+func TestAddModelFile(t *testing.T) {
+	dir := t.TempDir()
+	modelPath := filepath.Join(dir, "new.gguf")
+	makeGGUF(t, modelPath)
+
+	r := New()
+	entry, err := r.AddModelFile(modelPath, "", "")
+	if err != nil {
+		t.Fatalf("AddModelFile: %v", err)
+	}
+	if entry.ID != "new" {
+		t.Fatalf("expected ID new, got %q", entry.ID)
+	}
+	if got := len(r.List()); got != 1 {
+		t.Fatalf("expected 1 model, got %d", got)
+	}
+}
+
+func TestAddModelFile_DuplicateID(t *testing.T) {
+	dir := t.TempDir()
+	makeGGUF(t, filepath.Join(dir, "a.gguf"))
+	makeGGUF(t, filepath.Join(dir, "b.gguf"))
+
+	r := New()
+	if _, err := r.AddModelFile(filepath.Join(dir, "a.gguf"), "dup", ""); err != nil {
+		t.Fatalf("first AddModelFile: %v", err)
+	}
+	if _, err := r.AddModelFile(filepath.Join(dir, "b.gguf"), "dup", ""); !errors.Is(err, ErrModelAlreadyExists) {
+		t.Fatalf("expected ErrModelAlreadyExists, got %v", err)
+	}
+}
+
+func TestAddModelFile_InvalidExtension(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "bad.bin")
+	if err := os.WriteFile(path, []byte("x"), 0o644); err != nil {
+		t.Fatalf("write: %v", err)
+	}
+	r := New()
+	if _, err := r.AddModelFile(path, "", ""); !errors.Is(err, ErrInvalidModelFile) {
+		t.Fatalf("expected ErrInvalidModelFile, got %v", err)
+	}
+}
+
+func TestRemoveModel(t *testing.T) {
+	dir := t.TempDir()
+	makeGGUF(t, filepath.Join(dir, "a.gguf"))
+
+	r := New()
+	if err := r.Scan(dir, false); err != nil {
+		t.Fatalf("Scan: %v", err)
+	}
+	if err := r.RemoveModel("a"); err != nil {
+		t.Fatalf("RemoveModel: %v", err)
+	}
+	if got := len(r.List()); got != 0 {
+		t.Fatalf("expected 0 models, got %d", got)
+	}
+}
+
+func TestRemoveModel_NotFound(t *testing.T) {
+	r := New()
+	if err := r.RemoveModel("missing"); !errors.Is(err, ErrModelNotFound) {
+		t.Fatalf("expected ErrModelNotFound, got %v", err)
 	}
 }

@@ -50,6 +50,8 @@ func registerInferenceRoutes(mux *http.ServeMux, svc service.InferenceService) {
 		mux.HandleFunc("POST /v1/completions", handleCompletions(svc))
 		mux.HandleFunc("GET /v1/models", handleListModels(svc))
 		mux.HandleFunc("GET /v1/models/{model_id}", handleGetModel(svc))
+		mux.HandleFunc("POST /v1/models", handleLoadModel(svc))
+		mux.HandleFunc("DELETE /v1/models/{model_id}", handleUnloadModel(svc))
 		mux.HandleFunc("POST /v1/embeddings", handleEmbeddings(svc))
 		return
 	}
@@ -60,5 +62,7 @@ func registerInferenceRoutes(mux *http.ServeMux, svc service.InferenceService) {
 	mux.HandleFunc("POST /v1/completions", unavailable)
 	mux.HandleFunc("GET /v1/models", unavailable)
 	mux.HandleFunc("GET /v1/models/{model_id}", unavailable)
+	mux.HandleFunc("POST /v1/models", unavailable)
+	mux.HandleFunc("DELETE /v1/models/{model_id}", unavailable)
 	mux.HandleFunc("POST /v1/embeddings", unavailable)
 }
