@@ -72,7 +72,7 @@ base_url = os.environ["PACKLLAMA_BASE_URL"] + "/v1"
 api_key = "test-key"
 
 lc = ChatOpenAI(
-    model="test-model",
+    model="gpt-3.5-turbo",
     api_key=api_key,
     base_url=base_url,
     temperature=0,
@@ -81,7 +81,7 @@ lc_resp = lc.invoke([HumanMessage(content="Say hello")])
 assert "packllama works" in lc_resp.content
 
 llm = LlamaOpenAI(
-    model="test-model",
+    model="gpt-3.5-turbo",
     api_key=api_key,
     api_base=base_url,
     max_tokens=16,
