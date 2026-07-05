@@ -104,8 +104,7 @@ func requirePythonAndModules(t *testing.T, modules ...string) string {
 	if os.Getenv("PACKLLAMA_PYTHON_INTEGRATION") != "1" {
 		t.Skip("set PACKLLAMA_PYTHON_INTEGRATION=1 to run python integration tests")
 	}
-	args := append([]string{"-c", "import " + strings.Join(modules, ", ")}, []string{}...)
-	cmd := exec.Command(python, args...)
+	cmd := exec.Command(python, "-c", "import "+strings.Join(modules, ", "))
 	if output, err := cmd.CombinedOutput(); err != nil {
 		t.Skipf("python modules unavailable: %s", strings.TrimSpace(string(output)))
 	}
