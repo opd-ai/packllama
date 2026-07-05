@@ -158,50 +158,50 @@ This project leverages gollama.cpp's pure Go bindings (no CGO), automatic librar
 
 ### 4.2 Chat Interface
 
-- [ ] Build message display area with scrollable history
-- [ ] Implement syntax highlighting for code blocks (using existing library or custom)
-- [ ] Create message input field with multi-line support
-- [ ] Display streaming responses in real time
-- [ ] Show token count and generation speed
-- [ ] Implement message editing/deletion UI
-- [ ] Add conversation management (new/load/save/delete)
-- [ ] Create conversation browser/selector panel
+- [x] Build message display area with scrollable history
+- [x] Implement syntax highlighting for code blocks (using existing library or custom)
+- [x] Create message input field with multi-line support
+- [x] Display streaming responses in real time
+- [x] Show token count and generation speed
+- [x] Implement message editing/deletion UI
+- [x] Add conversation management (new/load/save/delete)
+- [x] Create conversation browser/selector panel
 
 ### 4.3 Model & Parameter Controls
 
-- [ ] Model selection dropdown with live model list
-- [ ] Parameter adjustment UI (temperature, top_p, context, etc.)
-- [ ] Preset buttons (Creative, Balanced, Precise)
-- [ ] Advanced parameters toggle (collapsed by default)
-- [ ] Real-time parameter validation
-- [ ] Parameter saving/loading
+- [x] Model selection dropdown with live model list
+- [x] Parameter adjustment UI (temperature, top_p, context, etc.)
+- [x] Preset buttons (Creative, Balanced, Precise)
+- [x] Advanced parameters toggle (collapsed by default)
+- [x] Real-time parameter validation
+- [x] Parameter saving/loading
 
 ### 4.4 System Information Display
 
-- [ ] GPU/CPU usage visualization
-- [ ] Memory utilization gauge
-- [ ] Inference speed indicator (tokens/sec)
-- [ ] Model load status
-- [ ] Queue length display
-- [ ] System health indicator
+- [x] GPU/CPU usage visualization
+- [x] Memory utilization gauge
+- [x] Inference speed indicator (tokens/sec)
+- [x] Model load status
+- [x] Queue length display
+- [x] System health indicator
 
 ### 4.5 Code Assistant Features
 
-- [ ] Enhanced code block display with copy button
-- [ ] Language-aware syntax highlighting
-- [ ] Code diff viewer for before/after
-- [ ] Quick action buttons (Explain, Generate Tests, Refactor)
-- [ ] File context browser
-- [ ] Terminal output display
+- [x] Enhanced code block display with copy button
+- [x] Language-aware syntax highlighting
+- [x] Code diff viewer for before/after
+- [x] Quick action buttons (Explain, Generate Tests, Refactor)
+- [x] File context browser
+- [x] Terminal output display
 
 ### 4.6 Settings Panel
 
-- [ ] UI theme selector (dark/light)
-- [ ] Font size adjustment
-- [ ] Default model selection
-- [ ] Auto-save preferences
-- [ ] Clear conversation history option
-- [ ] About/info panel
+- [x] UI theme selector (dark/light)
+- [x] Font size adjustment
+- [x] Default model selection
+- [x] Auto-save preferences
+- [x] Clear conversation history option
+- [x] About/info panel
 
 ---
 
