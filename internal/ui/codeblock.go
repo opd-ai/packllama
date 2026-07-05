@@ -71,7 +71,11 @@ func (cb *CodeBlock) SetBounds(r image.Rectangle) {
 func (cb *CodeBlock) Update() error {
 	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
 		mx, my := ebiten.CursorPosition()
-		cb.focused = inBounds(cb.bounds, mx, my)
+		if inBounds(cb.bounds, mx, my) {
+			cb.grabFocus()
+		} else if cb.focusCallback == nil {
+			cb.focused = false
+		}
 	}
 	return cb.copyBtn.Update()
 }

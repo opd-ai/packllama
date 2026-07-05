@@ -38,7 +38,11 @@ func (t *TextInput) SetValue(s string) {
 func (t *TextInput) Update() error {
 	mx, my := ebiten.CursorPosition()
 	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
-		t.focused = inBounds(t.bounds, mx, my)
+		if inBounds(t.bounds, mx, my) {
+			t.grabFocus()
+		} else if t.focusCallback == nil {
+			t.focused = false
+		}
 	}
 	if !t.focused {
 		return nil

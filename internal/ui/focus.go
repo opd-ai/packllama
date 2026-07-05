@@ -18,13 +18,25 @@ func NewFocusManager() *FocusManager {
 	return &FocusManager{current: -1}
 }
 
+// focusCallbacker is satisfied by baseWidget-embedded types so that the
+// FocusManager can install a callback for click-initiated focus requests.
+type focusCallbacker interface {
+	setFocusCallback(fn func())
+}
+
 // Register adds w to the focus cycle if it is focusable.
 // Widgets are focused in registration order.
+// If w embeds baseWidget, Register installs a callback so that click events
+// inside the widget route focus changes through this manager.
 func (f *FocusManager) Register(w Widget) {
 	if !w.Focusable() {
 		return
 	}
+	idx := len(f.widgets)
 	f.widgets = append(f.widgets, w)
+	if fc, ok := w.(focusCallbacker); ok {
+		fc.setFocusCallback(func() { f.SetFocus(idx) })
+	}
 }
 
 // Current returns the widget that currently holds focus, or nil if none.
@@ -67,12 +79,23 @@ func (f *FocusManager) Update() error {
 }
 
 // moveFocus shifts focus by delta (-1 or +1), wrapping around the list.
+// When no widget is focused (current == -1), forward Tab focuses the first
+// widget and Shift+Tab focuses the last widget.
 func (f *FocusManager) moveFocus(delta int) {
 	n := len(f.widgets)
 	if n == 0 {
 		return
 	}
-	next := (f.current + delta + n) % n
+	var next int
+	if f.current < 0 {
+		if delta > 0 {
+			next = 0
+		} else {
+			next = n - 1
+		}
+	} else {
+		next = ((f.current+delta)%n + n) % n
+	}
 	f.SetFocus(next)
 }
 

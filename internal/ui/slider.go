@@ -71,6 +71,9 @@ func (s *Slider) Update() error {
 // updateFromMouse sets the value proportionally to the mouse x position.
 func (s *Slider) updateFromMouse(mx, _ int) {
 	track := s.trackBounds()
+	if track.Dx() <= 0 {
+		return
+	}
 	t := float64(mx-track.Min.X) / float64(track.Dx())
 	if t < 0 {
 		t = 0

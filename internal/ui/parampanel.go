@@ -29,6 +29,7 @@ type ParamPanel struct {
 	ctxInput     *TextInput
 	repeatSlider *Slider
 	topKInput    *TextInput
+	presetBtns   [3]*Button // creative, balanced, precise
 }
 
 // NewParamPanel creates a ParamPanel initialised with params and optional model list.
@@ -55,6 +56,11 @@ func (pp *ParamPanel) buildWidgets(t Theme) {
 	pp.maxTokInput.SetValue(strconv.Itoa(pp.params.MaxTokens))
 	pp.ctxInput.SetValue(strconv.Itoa(pp.params.ContextLen))
 	pp.topKInput.SetValue(strconv.Itoa(pp.params.TopK))
+	presets := []string{"creative", "balanced", "precise"}
+	for i, name := range presets {
+		n := name
+		pp.presetBtns[i] = NewButton(n, t, func() { pp.ApplyPreset(n) })
+	}
 	pp.wireCallbacks()
 }
 
@@ -101,6 +107,7 @@ func (pp *ParamPanel) Load() error {
 	}
 	pp.params = p
 	pp.syncWidgets()
+	pp.validate()
 	return nil
 }
 
@@ -113,6 +120,9 @@ func (pp *ParamPanel) Update() error {
 	pp.tempSlider.Update() //nolint:errcheck
 	pp.topPSlider.Update() //nolint:errcheck
 	pp.advToggle.Update()  //nolint:errcheck
+	for _, btn := range pp.presetBtns {
+		btn.Update() //nolint:errcheck
+	}
 	if pp.showAdvanced {
 		pp.maxTokInput.Update()  //nolint:errcheck
 		pp.ctxInput.Update()     //nolint:errcheck
@@ -162,17 +172,8 @@ func (pp *ParamPanel) drawRow(screen *ebiten.Image, label string, w Widget) {
 
 // drawPresetButtons draws three preset action buttons.
 func (pp *ParamPanel) drawPresetButtons(screen *ebiten.Image) {
-	presets := []string{"creative", "balanced", "precise"}
-	x := pp.bounds.Min.X + pp.theme.Padding + 7*CharWidth + pp.theme.Padding
-	for _, name := range presets {
-		n := name
-		b := NewButton(n, pp.theme, func() { pp.ApplyPreset(n) })
-		w := len(n)*CharWidth + pp.theme.Padding*2
-		y := pp.bounds.Min.Y + pp.theme.Padding + 3*pp.rowH()
-		b.SetBounds(image.Rect(x, y, x+w, y+pp.rowH()-pp.theme.Margin))
-		b.Update() //nolint:errcheck
-		b.Draw(screen)
-		x += w + pp.theme.Margin
+	for _, btn := range pp.presetBtns {
+		btn.Draw(screen)
 	}
 }
 
@@ -184,6 +185,15 @@ func (pp *ParamPanel) layoutWidgets() {
 	pp.setRowBounds(pp.modelDrop, lx, 0, rw, rh)
 	pp.setRowBounds(pp.tempSlider, lx, 1, rw, rh)
 	pp.setRowBounds(pp.topPSlider, lx, 2, rw, rh)
+	// position preset buttons on row 3
+	presetNames := []string{"creative", "balanced", "precise"}
+	x := lx
+	y := pp.bounds.Min.Y + pp.theme.Padding + 3*rh
+	for i, name := range presetNames {
+		w := len(name)*CharWidth + pp.theme.Padding*2
+		pp.presetBtns[i].SetBounds(image.Rect(x, y, x+w, y+rh-pp.theme.Margin))
+		x += w + pp.theme.Margin
+	}
 	pp.advToggle.SetBounds(image.Rect(
 		pp.bounds.Min.X+pp.theme.Padding, pp.bounds.Min.Y+pp.theme.Padding+4*rh,
 		pp.bounds.Max.X-pp.theme.Padding, pp.bounds.Min.Y+pp.theme.Padding+5*rh-pp.theme.Margin))

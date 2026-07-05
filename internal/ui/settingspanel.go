@@ -24,11 +24,11 @@ type SettingsPanel struct {
 	onClearHist func()
 
 	// sub-widgets
-	themeDrop    *Dropdown
-	fontSlider   *Slider
-	modelInput   *TextInput
-	autoSaveBox  *Checkbox
-	clearBtn     *Button
+	themeDrop   *Dropdown
+	fontSlider  *Slider
+	modelInput  *TextInput
+	autoSaveBox *Checkbox
+	clearBtn    *Button
 }
 
 // NewSettingsPanel creates a panel pre-loaded with prefs and the given theme.

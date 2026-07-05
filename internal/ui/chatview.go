@@ -157,7 +157,12 @@ func (cv *ChatView) lines() []displayLine {
 }
 
 // computeLines converts all messages into flat display lines.
+// Lines are word-wrapped to the available widget width when bounds are set.
 func (cv *ChatView) computeLines() []displayLine {
+	maxChars := 0
+	if cv.bounds.Dx() > 2*cv.theme.Padding {
+		maxChars = (cv.bounds.Dx() - 2*cv.theme.Padding) / CharWidth
+	}
 	var out []displayLine
 	for i, msg := range cv.messages {
 		header := fmt.Sprintf("[%s]", msg.role)
@@ -165,7 +170,13 @@ func (cv *ChatView) computeLines() []displayLine {
 		for _, seg := range parseSegments(msg.content) {
 			for _, dl := range segmentLines(seg) {
 				dl.msgIdx = i
-				out = append(out, dl)
+				if maxChars > 0 {
+					for _, wrapped := range wordWrapLine(dl.text, maxChars) {
+						out = append(out, displayLine{text: wrapped, isCode: dl.isCode, msgIdx: i})
+					}
+				} else {
+					out = append(out, dl)
+				}
 			}
 		}
 		out = append(out, displayLine{text: "", msgIdx: -1})

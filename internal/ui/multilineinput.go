@@ -54,7 +54,11 @@ func (m *MultiLineInput) Clear() {
 func (m *MultiLineInput) Update() error {
 	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
 		mx, my := ebiten.CursorPosition()
-		m.focused = inBounds(m.bounds, mx, my)
+		if inBounds(m.bounds, mx, my) {
+			m.grabFocus()
+		} else if m.focusCallback == nil {
+			m.focused = false
+		}
 	}
 	if !m.focused {
 		return nil

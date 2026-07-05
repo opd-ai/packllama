@@ -45,11 +45,11 @@ func (s SysInfo) HealthOK() bool {
 // SysCollector samples system metrics in the background.
 // Call Start to begin sampling, Stop to halt.
 type SysCollector struct {
-	mu       sync.RWMutex
-	info     SysInfo
-	interval time.Duration
-	stop     chan struct{}
-	prevIdle uint64
+	mu        sync.RWMutex
+	info      SysInfo
+	interval  time.Duration
+	stop      chan struct{}
+	prevIdle  uint64
 	prevTotal uint64
 }
 
@@ -199,6 +199,10 @@ func sampleMem() (used, total uint64) {
 			memCache = v * 1024
 		}
 	}
-	used = memTotal - memFree - memBuff - memCache
+	avail := memFree + memBuff + memCache
+	if memTotal == 0 || avail >= memTotal {
+		return 0, memTotal
+	}
+	used = memTotal - avail
 	return used, memTotal
 }

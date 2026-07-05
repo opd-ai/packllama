@@ -11,11 +11,11 @@ import (
 // select, create, or delete them.
 type ConversationBrowser struct {
 	baseWidget
-	manager    *ConversationManager
+	manager      *ConversationManager
 	scrollOffset int
-	onSelect   func(i int, c *Conversation)
-	onNew      func()
-	onDelete   func(i int)
+	onSelect     func(i int, c *Conversation)
+	onNew        func()
+	onDelete     func(i int)
 }
 
 // NewConversationBrowser creates a browser backed by the given manager.

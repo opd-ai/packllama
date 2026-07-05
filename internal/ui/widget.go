@@ -33,9 +33,10 @@ type Activatable interface {
 // baseWidget provides shared bounds, focus state, and theme for all widgets.
 // It is intended to be embedded, not used directly.
 type baseWidget struct {
-	bounds  image.Rectangle
-	focused bool
-	theme   Theme
+	bounds        image.Rectangle
+	focused       bool
+	theme         Theme
+	focusCallback func() // set by FocusManager.Register; nil when unmanaged
 }
 
 // Bounds returns the widget's bounding rectangle.
@@ -46,3 +47,17 @@ func (b *baseWidget) SetBounds(r image.Rectangle) { b.bounds = r }
 
 // SetFocused grants or removes keyboard focus.
 func (b *baseWidget) SetFocused(focused bool) { b.focused = focused }
+
+// setFocusCallback is called by FocusManager.Register so that the widget can
+// route click-initiated focus requests through the manager.
+func (b *baseWidget) setFocusCallback(fn func()) { b.focusCallback = fn }
+
+// grabFocus requests focus: routes through FocusManager when registered,
+// otherwise sets the focused flag directly.
+func (b *baseWidget) grabFocus() {
+	if b.focusCallback != nil {
+		b.focusCallback()
+	} else {
+		b.focused = true
+	}
+}
