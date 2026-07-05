@@ -94,7 +94,7 @@ func (f *FocusManager) moveFocus(delta int) {
 			next = n - 1
 		}
 	} else {
-		next = ((f.current+delta)%n + n) % n
+		next = (f.current + delta + n) % n
 	}
 	f.SetFocus(next)
 }
